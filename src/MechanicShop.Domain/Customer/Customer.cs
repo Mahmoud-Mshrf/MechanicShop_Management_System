@@ -13,14 +13,14 @@ public class Customer : AuditableEntity
     public string? Email {get; private set;}
     // private List<Vehicle> _vehicles = [];
 
-    private Customer(string? name , string? phoneNumber,string? email)
+    private Customer(Guid id,string name , string phoneNumber,string email):base(id)
     {   
         Name = name;
         PhoneNumber = phoneNumber;
         Email = email;
     }
 
-    public Result<Customer> Create(string? name , string? phoneNumber,string? email)
+    public static Result<Customer> Create(Guid id,string name , string phoneNumber,string email)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -44,10 +44,10 @@ public class Customer : AuditableEntity
             return CustomerError.InvalidEmail;
         }
 
-        return new Customer(name,phoneNumber,email);
+        return new Customer(id,name,phoneNumber,email);
     }
 
-    public Result<Updated> Update(string? name , string? phoneNumber,string? email)
+    public Result<Updated> Update(string name , string phoneNumber,string email)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -77,19 +77,5 @@ public class Customer : AuditableEntity
         
         return Result.Updated;
     }
-}
-public static class CustomerError
-{
-    public static Error NameRequired 
-        => Error.Validation("Name_Is_Required","Customer Name is required"); 
-
-    public static Error EmailRequired
-        => Error.Validation("PhoneNumber_Is_Required","Phone number is required");
-
-    public static Error InvalidEmail
-        => Error.Validation("Email_Is_Invalid","Email is invalid");
-
-    public static Error InvalidPhoneNumber
-        => Error.Validation("Invalid_PhoneNumber","Phone number is invalid");
 }
 
