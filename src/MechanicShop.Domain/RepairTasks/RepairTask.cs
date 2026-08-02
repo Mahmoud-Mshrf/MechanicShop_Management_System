@@ -40,7 +40,29 @@ public sealed class RepairTask:AuditableEntity
 
         return new RepairTask(id, name.Trim(), laborCost, estimatedDurationInMins, parts);
     }
-        public Result<Updated> Update(string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins)
+    public Result<Updated> Upsert(List<Part> incomingParts)
+    {
+        if (incomingParts.Count <=0 || incomingParts is null)
+        {
+            return RepairTaskErrors.PartsRequired;
+        }
+        _parts!.RemoveAll(existingPart => incomingParts.All(incoming => incoming.Id != existingPart.Id));
+
+        foreach (var part in incomingParts)
+        {
+            var existing = _parts.FirstOrDefault(x=>x.Id == part.Id);
+            if (existing is null)
+            {
+                _parts.Add(existing!);
+            }
+            else
+            {
+                existing.Update(part.Name!,part.Cost,part.Quantity);
+            }
+        }
+        return Result.Updated;
+    }
+    public Result<Updated> Update(string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
