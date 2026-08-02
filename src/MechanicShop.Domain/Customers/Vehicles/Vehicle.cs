@@ -1,9 +1,9 @@
 using MechanicShop.Domain.Common;
 using MechanicShop.Domain.Common.Results;
 
-namespace MechanicShop.Domain.Customer.Vehicle;
+namespace MechanicShop.Domain.Customers.Vehicles;
 
-public class Vehicle : AuditableEntity
+public sealed class Vehicle : AuditableEntity
 {
     public Guid CustomerId {get;}
     public string? Make {get; private set;}
@@ -47,20 +47,30 @@ public class Vehicle : AuditableEntity
 
         return new Vehicle(id,make,model,year,licensePlate);
     }
-}
-public static class VehicleErrors
-{
-    public static Error MakeRequired
-        => Error.Validation("Vehicle_Make_Is_Required","Vehicle make is required");
+    public Result<Updated> Update(string make , string model , int year,string licensePlate)
+    {
+        if (string.IsNullOrWhiteSpace(make))
+        {
+            return VehicleErrors.MakeRequired;
+        }
+        if (string.IsNullOrWhiteSpace(model))
+        {
+            return VehicleErrors.ModelRequired;
+        }
+        if (string.IsNullOrWhiteSpace(licensePlate))
+        {
+            return VehicleErrors.LicensePlateRequired;
+        }
+        if (year < 1886 || year > DateTime.UtcNow.Year )
+        {
+            return VehicleErrors.InvalidYear;
+        }
 
-    public static Error ModelRequired
-        => Error.Validation("Vehicle_Model_Is_Required","Vehicle model is required");
-    
-    public static Error InvalidYear
-        => Error.Validation("Vehicle_Year_Is_Invalid","Vehicle year is invalid");
+        Make= make;
+        Model=model;
+        Year=year;
+        LicensePlate=licensePlate;
 
-    public static Error LicensePlateRequired
-        => Error.Validation("Vehicle_LicensePlate_Is_Required","Vehicle license plate is required");
-
-    
+        return Result.Updated;
+    }
 }

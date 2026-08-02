@@ -1,6 +1,6 @@
 using MechanicShop.Domain.Common.Results;
 
-namespace MechanicShop.Domain.Customer;
+namespace MechanicShop.Domain.Customers;
 
 public static class CustomerError
 {
