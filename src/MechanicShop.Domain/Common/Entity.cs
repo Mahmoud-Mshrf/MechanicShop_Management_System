@@ -5,6 +5,7 @@ namespace MechanicShop.Domain.Common;
 public abstract class Entity
 {
     public Guid Id {get;}
+    private readonly List<DomainEvent> _domainEvents=[];
     protected Entity()
     {
         
@@ -13,26 +14,18 @@ public abstract class Entity
     {
         Id = id == Guid.Empty ? Guid.NewGuid() : id;
     }
-
-}
-
-public abstract class AuditableEntity : Entity
-{
-    protected  AuditableEntity()
+    public void AddDomainEvent(DomainEvent domainEvent)
     {
-        
+        _domainEvents.Add(domainEvent);
     }
-
-    protected AuditableEntity(Guid id) : base(id)
-    {
-        
-    }
-
-    public DateTimeOffset CreatedAtUtc {get;set;}
-    public string? CreatedBy {get;set;}
-
-    public DateTimeOffset LastModifiedUtc {get;set;}
-
-    public string? LastModifiedBy{get;set;}
     
+    public void RemoveDomainEvent(DomainEvent domainEvent)
+    {
+        _domainEvents.Remove(domainEvent);
+    }
+
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
 }
