@@ -135,6 +135,31 @@ public sealed class WorkOrder : AuditableEntity
         Spot = spot;
         return  Result.Updated;
     }
+    public Result<Updated> UpdateState(OrderState newState)
+    {
+        if (!Enum.IsDefined(newState))
+        {
+            return WorkOrderErrors.InvalidSpot;
+        }
+        
+        if (!CanTransitionState(newState))
+        {
+            return WorkOrderErrors.InvalidStateTransition(OrderState,newState);
+        }
+        
+        OrderState = newState;
+        return  Result.Updated;
+    }
+    public bool CanTransitionState(OrderState newState)
+    {
+        return (OrderState,newState) switch
+        {
+            (OrderState.Scheduled,OrderState.InProgress) => true,
+            (OrderState.InProgress,OrderState.Completed) => true,
+            (_,OrderState.Cancelled) when OrderState!= OrderState.Completed => true,
+            _ => false
+        };
+    }
 }
 public static class WorkOrderErrors
 {
@@ -159,9 +184,11 @@ public static class WorkOrderErrors
     public static Error InvalidSpot
         => Error.Validation("Invalid_Spot","Spot is invalid must be A , B , C Or D");
 
-    public static Error Readonly => Error.Conflict(
-    code: "WorkOrderErrors.Readonly",
-    description: "WorkOrder is read-only or is not editable .");
+    public static Error Readonly 
+        => Error.Conflict("WorkOrderErrors.Readonly","WorkOrder is read-only or is not editable .");
+
+    public static Error InvalidStateTransition(OrderState olderState,OrderState newState) 
+        => Error.Conflict("Invalid_State_Transition",$"Invalid state transition from {olderState} to {newState} .");
 }
 
 
