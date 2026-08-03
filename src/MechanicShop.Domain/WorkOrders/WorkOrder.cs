@@ -141,7 +141,7 @@ public sealed class WorkOrder : AuditableEntity
         {
             return WorkOrderErrors.InvalidSpot;
         }
-        
+
         if (!CanTransitionState(newState))
         {
             return WorkOrderErrors.InvalidStateTransition(OrderState,newState);
@@ -159,6 +159,29 @@ public sealed class WorkOrder : AuditableEntity
             (_,OrderState.Cancelled) when OrderState!= OrderState.Completed => true,
             _ => false
         };
+    }
+
+    public Result<Updated> Cancel()
+    {
+        if (!CanTransitionState(OrderState.Cancelled))
+        {
+            return WorkOrderErrors.InvalidStateTransition(OrderState, OrderState.Cancelled);
+        }
+
+        OrderState = OrderState.Cancelled;
+        return Result.Updated;
+    }
+
+    public Result<Updated> ClearRepairTasks()
+    {
+        if (!IsEditable)
+        {
+            return WorkOrderErrors.Readonly;
+        }
+
+        _repairTasks.Clear();
+
+        return Result.Updated;
     }
 }
 public static class WorkOrderErrors
