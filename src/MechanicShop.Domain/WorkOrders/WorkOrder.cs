@@ -87,6 +87,26 @@ public sealed class WorkOrder : AuditableEntity
 
         return Result.Updated;
     }
+
+    public Result<Updated> UpdateTiming(DateTimeOffset startAtUtc ,DateTimeOffset endAtUtc)
+    {
+        if (!IsEditable)
+        {
+            return WorkOrderErrors.Readonly;
+        }
+        if (startAtUtc < endAtUtc)
+        {
+            return WorkOrderErrors.EndAtMustBeAfterStartAt;
+        }
+        if (StartAtUtc <= DateTime.UtcNow)
+        {
+            return WorkOrderErrors.StartAtMustBeInTheFuture;
+        }
+        StartAtUtc = startAtUtc;
+        EndAtUtc = endAtUtc;
+
+        return Result.Updated;
+    }
 }
 public static class WorkOrderErrors
 {
@@ -101,6 +121,9 @@ public static class WorkOrderErrors
 
     public static Error EndAtMustBeAfterStartAt
         => Error.Validation("EndAt_MustBe_After_StartAt","Ending time must be after starting time");
+    
+    public static Error StartAtMustBeInTheFuture
+        => Error.Validation("StartAt_MustBe_In_TheFuture","StartAt must be in the future");
 
     public static Error RepairTaskAlreadyIncluded
         => Error.Validation("RepairTask_Already_Included","RepairTask already included in the current repairTasks");
