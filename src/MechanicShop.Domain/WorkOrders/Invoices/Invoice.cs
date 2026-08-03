@@ -14,76 +14,63 @@ public sealed class Invoice : AuditableEntity
     public DateTimeOffset? PaidAt {get;private set;}
     private readonly List<InvoiceLineItem> _invoiceLineItems = [];
     public IEnumerable<InvoiceLineItem> InvoiceLineItems => _invoiceLineItems.AsReadOnly();
+    public decimal SubTotal => _invoiceLineItems.Sum(x=>x.LineTotal);
+    public decimal Total => SubTotal - (DiscountAmount + TaxAmount); 
 
-}
-
-public class InvoiceLineItem
-{
-    public Guid InvoiceId {get;private set;}
-    public int LineNumber {get;private set;}
-    public string? Description {get;private set;}
-    public int Quantity {get; private set;}
-    public decimal UnitPrice {get;private set;}
-    public decimal LineTotal => UnitPrice * Quantity ;
-
-    private InvoiceLineItem()
+    private Invoice()
     {
-    }
-    private InvoiceLineItem(Guid invoiceId, int lineNumber, string? description, int quantity, decimal unitPrice)
-    {
-        InvoiceId = invoiceId;
-        LineNumber = lineNumber;
-        Description = description;
-        Quantity = quantity;
-        UnitPrice = unitPrice;
+        
     }
 
-    public static Result<InvoiceLineItem> Create(Guid invoiceId, int lineNumber, string? description, int quantity, decimal unitPrice)
+    private Invoice(Guid id,Guid workOrderId, decimal discountAmount,decimal taxAmount,List<InvoiceLineItem> lineItems):base(id)
     {
-        if (Guid.Empty == invoiceId)
+        WorkOrderId = workOrderId;
+        IssuedAtUtc = DateTimeOffset.UtcNow;
+        DiscountAmount = discountAmount;
+        TaxAmount= taxAmount;
+        _invoiceLineItems= lineItems; 
+        Status = InvoiceStatus.UnPaid;
+    }
+
+    public static Result<Invoice> Create(Guid id,Guid workOrderId, decimal discountAmount,decimal taxAmount,List<InvoiceLineItem> lineItems)
+    {
+        if (workOrderId == Guid.Empty)
         {
-            return InvoiceLineItemErrors.InvoiceIdRequired;
+            return InvoiceErrors.WorkOrderIdInvalid;
         }
-        if (lineNumber <= 0)
+        if (discountAmount <= 0)
         {
-            return InvoiceLineItemErrors.LineNumberInvalid;
+            return InvoiceErrors.DiscountNegative;
         }
-        if (string.IsNullOrWhiteSpace(description))
+        if (lineItems.Count <=0 || lineItems is null)
         {
-            return InvoiceLineItemErrors.DescriptionRequired;
-        }
-        if (quantity <=0)
-        {
-            return InvoiceLineItemErrors.QuantityInvalid;
-        }
-        if (unitPrice <=0)
-        {
-            return InvoiceLineItemErrors.UnitPriceInvalid;
+            return InvoiceErrors.LineItemsEmpty;
         }
 
-        return new InvoiceLineItem(invoiceId,lineNumber,description,quantity,unitPrice);
+        return new Invoice(id,workOrderId,discountAmount,taxAmount,lineItems);
     }
 
 }
-public static class InvoiceLineItemErrors
+
+public static class InvoiceErrors
 {
-    public static Error InvoiceIdRequired => Error.Validation(
-        code: "InvoiceLineItemErrors.InvoiceIdRequired",
-        description: "InvoiceId is required.");
+    public static readonly Error WorkOrderIdInvalid = Error.Validation(
+        code: "Invoice.WorkOrderId.Invalid",
+        description: "WorkOrderId is invalid");
 
-    public static Error LineNumberInvalid => Error.Validation(
-        code: "InvoiceLineItemErrors.LineNumberInvalid",
-        description: "Line number must be greater than 0.");
+    public static readonly Error LineItemsEmpty = Error.Validation(
+        code: "Invoice.LineItems.Empty",
+        description: "Invoice must have line items");
 
-    public static Error DescriptionRequired => Error.Validation(
-        code: "InvoiceLineItemErrors.DescriptionRequired",
-        description: "Description is required.");
+    public static readonly Error InvoiceLocked = Error.Validation(
+        code: "Invoice.Locked",
+        description: "Invoice is locked");
 
-    public static Error QuantityInvalid => Error.Validation(
-        code: "InvoiceLineItemErrors.QuantityInvalid",
-        description: "Quantity must be greater than 0.");
+    public static readonly Error DiscountNegative = Error.Validation(
+        code: "Invoice.Discount.Negative",
+        description: "Discount cannot be negative");
 
-    public static Error UnitPriceInvalid => Error.Validation(
-        code: "InvoiceLineItemErrors.UnitPriceInvalid",
-        description: "Unit price must be greater than 0.");
+    public static readonly Error DiscountExceedsSubtotal = Error.Validation(
+        code: "Invoice.Discount.ExceedsSubtotal",
+        description: "Discount exceeds subtotal");
 }
