@@ -16,41 +16,51 @@ public sealed class WorkOrder : AuditableEntity
     public OrderState OrderState {get; private set;}
     public Employee? Labor {get; set;}
     public Vehicle? Vehicle {get; set;}
-    public IEnumerable<RepairTask> RepairTasks {get;private set;} = [];
+    private readonly List<RepairTask> _repairTasks = [];
+    public IEnumerable<RepairTask> RepairTasks => _repairTasks.AsReadOnly();
     public Guid LaborId {get;}
     public Guid VehicleId {get;}
     // public Invoice? Invoice {get;private set;}
 
-    public decimal Discount {get ; private set;} = 0;
-    public decimal Tax {get; private set;} = MechanicShopConstants.Tax;
-    public decimal TotalPartsCost => RepairTasks.Sum(x=>x.Parts.Sum(p=>p.Cost));
-    public decimal TotalLaborCost => RepairTasks.Sum(x=>x.LaborCost);
-    public decimal TotalCost => TotalLaborCost + TotalPartsCost;
+    public decimal? Discount {get ; private set;} = 0;
+    public decimal? Tax {get; private set;}
+    // public decimal? TotalPartsCost => RepairTasks.Sum(x=>x.Parts.Sum(p=>p.Cost * p.Quantity)); or
+    public decimal? TotalPartsCost => _repairTasks.SelectMany(rt => rt.Parts).Sum(p => p.Cost * p.Quantity);
+    public decimal? TotalLaborCost => RepairTasks.Sum(x=>x.LaborCost);
+    public decimal? TotalCost => (TotalLaborCost ?? 0) + (TotalPartsCost?? 0);
 
-    private WorkOrder(Guid id,DateTimeOffset startAtUtc, DateTimeOffset endAtUtc, Spot spot, OrderState orderState, Employee? labor, Vehicle? vehicle, IEnumerable<RepairTask> repairTasks):base(id)
+    private WorkOrder(Guid id,DateTimeOffset startAtUtc, DateTimeOffset endAtUtc, Spot spot, OrderState orderState, Guid laborId, Guid vehicleId, List<RepairTask> repairTasks):base(id)
     {
         StartAtUtc = startAtUtc;
         EndAtUtc = endAtUtc;
         Spot = spot;
         OrderState = orderState;
-        Labor = labor;
-        Vehicle = vehicle;
-        RepairTasks = repairTasks;
+        LaborId = laborId;
+        VehicleId = vehicleId;
+        _repairTasks = repairTasks;
     }
     private WorkOrder()
     {}
 
-    public static Result<WorkOrder> Create(Guid id,DateTimeOffset startAtUtc, DateTimeOffset endAtUtc, Spot spot,Employee? labor, Vehicle? vehicle, IEnumerable<RepairTask> repairTasks)
+    public static Result<WorkOrder> Create(Guid id,DateTimeOffset startAtUtc, DateTimeOffset endAtUtc, Spot spot,Guid laborId, Guid vehicleId, List<RepairTask> repairTasks)
     {
         if (id == Guid.Empty)
         {
             return WorkOrderErrors.IdIsRequired;
         }
-        if (repairTasks.Count() <1)
+        if (laborId == Guid.Empty)
+        {
+            return WorkOrderErrors.LaborIdIsRequired;
+        }
+        if (vehicleId == Guid.Empty)
+        {
+            return WorkOrderErrors.VehicleIdIsRequired;
+        }
+        if (repairTasks is null || repairTasks.Count < 1)
         {
             return WorkOrderErrors.AtLeastOneTaskRequired;
         }
-        if (startAtUtc < endAtUtc)
+        if (startAtUtc <= endAtUtc)
         {
             return WorkOrderErrors.EndAtMustBeAfterStartAt;
         }
@@ -59,14 +69,17 @@ public sealed class WorkOrder : AuditableEntity
             return WorkOrderErrors.InvalidSpot;
         }
 
-        return new WorkOrder(id,startAtUtc,endAtUtc,spot,OrderState.Scheduled,labor,vehicle,repairTasks);
+        return new WorkOrder(id,startAtUtc,endAtUtc,spot,OrderState.Scheduled,laborId,vehicleId,repairTasks);
     }
 }
 public static class WorkOrderErrors
 {
     public static Error IdIsRequired
         => Error.Validation("Id_Is_Required","WorkOrder id is required ");
-    
+    public static Error VehicleIdIsRequired
+        => Error.Validation("Vehicle_Id_Is_Required","Vehicle id is required ");
+    public static Error LaborIdIsRequired
+        => Error.Validation("Labor_Id_Is_Required","Labor id is required ");
     public static Error AtLeastOneTaskRequired
         => Error.Validation("AtLeast_One_Task_Is_Required","At least one repair task is required");
 
