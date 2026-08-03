@@ -122,6 +122,19 @@ public sealed class WorkOrder : AuditableEntity
 
         return Result.Updated;
     }
+    public Result<Updated> UpdateSpot(Spot spot)
+    {
+        if (!IsEditable)
+        {
+            return WorkOrderErrors.Readonly;
+        }
+        if (!Enum.IsDefined(spot))
+        {
+            return WorkOrderErrors.InvalidSpot;
+        }
+        Spot = spot;
+        return  Result.Updated;
+    }
 }
 public static class WorkOrderErrors
 {
