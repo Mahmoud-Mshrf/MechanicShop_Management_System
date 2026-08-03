@@ -9,7 +9,7 @@ using Microsoft.VisualBasic;
 
 namespace MechanicShop.Domain.Customers;
 
-public class Customer : AuditableEntity
+public sealed class Customer : AuditableEntity
 {
     public string? Name {get;private set;}
     public string? PhoneNumber {get;private set;}

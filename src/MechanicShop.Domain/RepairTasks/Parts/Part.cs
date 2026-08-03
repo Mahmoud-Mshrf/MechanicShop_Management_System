@@ -3,7 +3,7 @@ using MechanicShop.Domain.Common.Results;
 
 namespace MechanicShop.Domain.RepairTasks.Parts
 {
-    public class Part:AuditableEntity
+    public sealed class Part:AuditableEntity
     {
         public string? Name {get;private set;}
         public decimal Cost{get;private set;}

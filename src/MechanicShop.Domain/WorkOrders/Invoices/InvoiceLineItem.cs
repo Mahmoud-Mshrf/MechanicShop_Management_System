@@ -2,13 +2,13 @@ using MechanicShop.Domain.Common.Results;
 
 namespace MechanicShop.Domain.WorkOrders.Invoices;
 
-public class InvoiceLineItem
+public sealed class InvoiceLineItem
 {
-    public Guid InvoiceId {get;private set;}
-    public int LineNumber {get;private set;}
-    public string? Description {get;private set;}
-    public int Quantity {get; private set;}
-    public decimal UnitPrice {get;private set;}
+    public Guid InvoiceId {get;}
+    public int LineNumber {get;}
+    public string? Description {get;}
+    public int Quantity {get; }
+    public decimal UnitPrice {get;}
     public decimal LineTotal => UnitPrice * Quantity ;
 
     private InvoiceLineItem()
