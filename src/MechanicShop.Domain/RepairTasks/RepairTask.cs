@@ -12,7 +12,7 @@ public sealed class RepairTask:AuditableEntity
     public RepairDurationInMinutes EstimatedDurationInMinutes {get;private set;}
     private readonly List<Part>? _parts = [];
     public IEnumerable<Part> Parts => _parts!.AsReadOnly();
-    public  decimal TotalCost => Parts!.Sum(p=>p.Cost * p.Quantity);
+    public  decimal TotalCost => LaborCost + Parts!.Sum(p=>p.Cost * p.Quantity);
 
     private RepairTask(Guid id,string? name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMinutes, List<Part>? parts):base(id)
     {

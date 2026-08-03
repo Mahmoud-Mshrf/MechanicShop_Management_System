@@ -1,12 +1,13 @@
 using MechanicShop.Domain.Common;
 using MechanicShop.Domain.Common.Results;
+using MechanicShop.Domain.Identity;
 
 namespace MechanicShop.Domain.Employees;
 
 public sealed class Employee : AuditableEntity
 {
     public string? FirstName {get;private set;}
-    public string? LastName {get;set;}
+    public string? LastName {get; private set;}
     public Role Role {get;set;}
     public string FullName => $"{FirstName} {LastName}";
 
