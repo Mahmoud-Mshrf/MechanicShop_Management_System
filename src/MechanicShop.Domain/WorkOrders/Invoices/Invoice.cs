@@ -50,6 +50,34 @@ public sealed class Invoice : AuditableEntity
         return new Invoice(id,workOrderId,discountAmount,taxAmount,lineItems);
     }
 
+    public Result<Updated> ApplyDiscount(decimal amount)
+    {
+        if (Status!= InvoiceStatus.UnPaid)
+        {
+            return InvoiceErrors.InvoiceLocked;
+        }
+        if (amount >= SubTotal || amount <= 0)
+        {
+            return  InvoiceErrors.DiscountExceedsSubtotal;
+        }
+        if ( amount <= 0)
+        {
+            return  InvoiceErrors.DiscountNegative;
+        }
+        DiscountAmount = amount;
+
+        return Result.Updated;
+    }
+    public Result<Updated> MarkAsPaid()
+    {
+        if (Status!= InvoiceStatus.UnPaid)
+        {
+            return InvoiceErrors.InvoiceLocked;
+        }
+        PaidAt = DateTimeOffset.UtcNow;
+        
+        return Result.Updated;
+    }
 }
 
 public static class InvoiceErrors
