@@ -38,27 +38,52 @@ public class InvoiceLineItem
         UnitPrice = unitPrice;
     }
 
-    // public static Result<InvoiceLineItem> Create(Guid invoiceId, int lineNumber, string? description, int quantity, decimal unitPrice)
-    // {
-    //     if (Guid.Empty == invoiceId)
-    //     {
-    //         return InvoiceLineItemErrors.EmptyInvoiceId;
-    //     }
-    //     if (lineNumber <= 0)
-    //     {
-    //         return InvoiceLineItemErrors.InvalidLineNumber;
-    //     }
-    //     if (string.IsNullOrWhiteSpace(description))
-    //     {
-    //         return InvoiceLineItemErrors.DescriptionIsRequired;
-    //     }
-    //     if (quantity <=0)
-    //     {
-    //         return InvoiceLineItemErrors.InvalidQuantity;
-    //     }
-    //     if (unitPrice <=0)
-    //     {
-    //         return InvoiceLineItemErrors.InvalidUnitPrice;
-    //     }
-    // }
+    public static Result<InvoiceLineItem> Create(Guid invoiceId, int lineNumber, string? description, int quantity, decimal unitPrice)
+    {
+        if (Guid.Empty == invoiceId)
+        {
+            return InvoiceLineItemErrors.InvoiceIdRequired;
+        }
+        if (lineNumber <= 0)
+        {
+            return InvoiceLineItemErrors.LineNumberInvalid;
+        }
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return InvoiceLineItemErrors.DescriptionRequired;
+        }
+        if (quantity <=0)
+        {
+            return InvoiceLineItemErrors.QuantityInvalid;
+        }
+        if (unitPrice <=0)
+        {
+            return InvoiceLineItemErrors.UnitPriceInvalid;
+        }
+
+        return new InvoiceLineItem(invoiceId,lineNumber,description,quantity,unitPrice);
+    }
+
+}
+public static class InvoiceLineItemErrors
+{
+    public static Error InvoiceIdRequired => Error.Validation(
+        code: "InvoiceLineItemErrors.InvoiceIdRequired",
+        description: "InvoiceId is required.");
+
+    public static Error LineNumberInvalid => Error.Validation(
+        code: "InvoiceLineItemErrors.LineNumberInvalid",
+        description: "Line number must be greater than 0.");
+
+    public static Error DescriptionRequired => Error.Validation(
+        code: "InvoiceLineItemErrors.DescriptionRequired",
+        description: "Description is required.");
+
+    public static Error QuantityInvalid => Error.Validation(
+        code: "InvoiceLineItemErrors.QuantityInvalid",
+        description: "Quantity must be greater than 0.");
+
+    public static Error UnitPriceInvalid => Error.Validation(
+        code: "InvoiceLineItemErrors.UnitPriceInvalid",
+        description: "Unit price must be greater than 0.");
 }
