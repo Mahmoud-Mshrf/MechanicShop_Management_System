@@ -18,8 +18,8 @@ public sealed class WorkOrder : AuditableEntity
     public Vehicle? Vehicle {get; set;}
     private readonly List<RepairTask> _repairTasks = [];
     public IEnumerable<RepairTask> RepairTasks => _repairTasks.AsReadOnly();
-    public Guid LaborId {get;}
-    public Guid VehicleId {get;}
+    public Guid LaborId {get; private set;}
+    public Guid VehicleId {get; private set;}
     // public Invoice? Invoice {get;private set;}
 
     public decimal? Discount {get ; private set;} = 0;
@@ -50,7 +50,7 @@ public sealed class WorkOrder : AuditableEntity
         }
         if (laborId == Guid.Empty)
         {
-            return WorkOrderErrors.LaborIdIsRequired;
+            return WorkOrderErrors.LaborIdIsEmpty(laborId.ToString());
         }
         if (vehicleId == Guid.Empty)
         {
@@ -107,6 +107,21 @@ public sealed class WorkOrder : AuditableEntity
 
         return Result.Updated;
     }
+
+    public Result<Updated> UpdateLabor(Guid laborId)
+    {
+        if (!IsEditable)
+        {
+            return WorkOrderErrors.Readonly;
+        }
+        if (Guid.Empty == laborId)
+        {
+            return WorkOrderErrors.LaborIdIsEmpty(laborId.ToString());
+        }
+        LaborId = laborId; 
+
+        return Result.Updated;
+    }
 }
 public static class WorkOrderErrors
 {
@@ -114,8 +129,8 @@ public static class WorkOrderErrors
         => Error.Validation("Id_Is_Required","WorkOrder id is required ");
     public static Error VehicleIdIsRequired
         => Error.Validation("Vehicle_Id_Is_Required","Vehicle id is required ");
-    public static Error LaborIdIsRequired
-        => Error.Validation("Labor_Id_Is_Required","Labor id is required ");
+    public static Error LaborIdIsEmpty(string guid)
+        => Error.Validation("Labor_Id_Is_Empty",$"Labor id {guid} is empty ");
     public static Error AtLeastOneTaskRequired
         => Error.Validation("AtLeast_One_Task_Is_Required","At least one repair task is required");
 
@@ -133,7 +148,7 @@ public static class WorkOrderErrors
 
     public static Error Readonly => Error.Conflict(
     code: "WorkOrderErrors.Readonly",
-    description: "WorkOrder is read-only or is not editable.");
+    description: "WorkOrder is read-only or is not editable .");
 }
 
 
