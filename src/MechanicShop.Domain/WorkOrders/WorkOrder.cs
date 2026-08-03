@@ -71,6 +71,22 @@ public sealed class WorkOrder : AuditableEntity
 
         return new WorkOrder(id,startAtUtc,endAtUtc,spot,OrderState.Scheduled,laborId,vehicleId,repairTasks);
     }
+    public bool IsEditable => OrderState == OrderState.Scheduled;
+
+    public Result<Updated> AddRepairTask(RepairTask repairTask)
+    {
+        if (!IsEditable)
+        {
+            return WorkOrderErrors.Readonly;
+        }
+        if (_repairTasks.Any(r=>r.Id==repairTask.Id))
+        {
+            return WorkOrderErrors.RepairTaskAlreadyIncluded;            
+        }
+        _repairTasks.Add(repairTask);
+
+        return Result.Updated;
+    }
 }
 public static class WorkOrderErrors
 {
@@ -86,8 +102,15 @@ public static class WorkOrderErrors
     public static Error EndAtMustBeAfterStartAt
         => Error.Validation("EndAt_MustBe_After_StartAt","Ending time must be after starting time");
 
+    public static Error RepairTaskAlreadyIncluded
+        => Error.Validation("RepairTask_Already_Included","RepairTask already included in the current repairTasks");
+
     public static Error InvalidSpot
         => Error.Validation("Invalid_Spot","Spot is invalid must be A , B , C Or D");
+
+    public static Error Readonly => Error.Conflict(
+    code: "WorkOrderErrors.Readonly",
+    description: "WorkOrder is read-only or is not editable.");
 }
 
 
