@@ -15,5 +15,6 @@ public static class CustomerError
 
     public static Error InvalidPhoneNumber
         => Error.Validation("Invalid_PhoneNumber","Phone number is invalid");
+    
 }
 
