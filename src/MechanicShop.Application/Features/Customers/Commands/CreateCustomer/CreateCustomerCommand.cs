@@ -1,4 +1,4 @@
-using MechanicShop.Application.Features.Customers.Commands.Dtos;
+using MechanicShop.Application.Features.Customers.Dtos;
 using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.Customers.Vehicles;
 using MediatR;

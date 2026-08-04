@@ -1,6 +1,6 @@
 using MechanicShop.Domain.Customers.Vehicles;
 
-namespace MechanicShop.Application.Features.Customers.Commands.Dtos;
+namespace MechanicShop.Application.Features.Customers.Dtos;
 
 public class CustomerDto
 {

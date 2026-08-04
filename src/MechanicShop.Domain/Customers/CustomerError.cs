@@ -15,6 +15,8 @@ public static class CustomerError
 
     public static Error InvalidPhoneNumber
         => Error.Validation("Invalid_PhoneNumber","Phone number is invalid");
-    
+
+    public static Error ExistedEmail
+        => Error.Conflict("Existed_Email","Customer with this email is already exists"); 
 }
 
