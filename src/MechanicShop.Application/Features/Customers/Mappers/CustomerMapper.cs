@@ -6,29 +6,34 @@ namespace MechanicShop.Application.Features.Customers.Mappers;
 
 public static class CustomerMapper
 {
-    public static CustomerDto ToDto(this Customer customer)
+    public static CustomerDto ToDto(this Customer entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         return new CustomerDto
         {
-            Email = customer.Email,
-            Id = customer.Id,
-            Name=customer.Name,
-            PhoneNumber=customer.PhoneNumber,
-            Vehicles = [.. customer.Vehicles.Select(x=>x.ToDto())]
+            Id = entity.Id,
+            Name = entity.Name!,
+            Email = entity.Email!,
+            PhoneNumber = entity.PhoneNumber!,
+            Vehicles = entity.Vehicles?.Select(v => v.ToDto()).ToList() ?? []
         };
     }
-}
-public static class VehicleMapper
-{
-    public static VehicleDto ToDto(this Vehicle vehicle)
+
+    public static List<CustomerDto> ToDtos(this IEnumerable<Customer> entities)
     {
-        return new VehicleDto
-        {
-            Id = vehicle.Id,
-            LicensePlate= vehicle.LicensePlate,
-            Make= vehicle.Make,
-            Model=vehicle.Model,
-            Year = vehicle.Year
-        };
+        return [.. entities.Select(e => e.ToDto())];
+    }
+
+    public static VehicleDto ToDto(this Vehicle entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        return new VehicleDto(entity.Id, entity.Make!, entity.Model!, entity.LicensePlate! ,entity.Year);
+    }
+
+    public static List<VehicleDto> ToDtos(this IEnumerable<Vehicle> entities)
+    {
+        return [.. entities.Select(e => e.ToDto())];
     }
 }

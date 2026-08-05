@@ -13,6 +13,15 @@ public class CustomerDto
 
 public class VehicleDto
 {
+    public VehicleDto(Guid id, string make, string model, string licensePlate, int year)
+    {
+        Id = id;
+        Make = make;
+        Model = model;
+        LicensePlate = licensePlate;
+        Year = year;
+    }
+
     public Guid Id {get;set;}
     public string Make {get;set;}
     public string Model {get;set;}
