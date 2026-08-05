@@ -18,6 +18,7 @@ public class UpdateCustomerCommandHandler(IAppDbContext context,ILogger<UpdateCu
         var customer = await context.Customers.Include(x=>x.Vehicles).FirstOrDefaultAsync(x=>x.Id==request.Id);
         if (customer is null)
         {
+            logger.LogWarning("no customer with id {}",request.Id);
             return CustomerError.NotFound(request.Id.ToString());
         }
 

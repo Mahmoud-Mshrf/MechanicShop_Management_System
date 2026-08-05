@@ -32,6 +32,11 @@ public static class ApplicationErrors
             "Vehicle_Overlapping_WorkOrder",
             "The vehicle already has an overlapping WorkOrder.");
 
+    public static Error CustomerHasActiveWorkOrders =>
+    Error.Conflict(
+            "Customer_Has_Active_Work_Orders",
+            "Customer has active work orders.");
+
     public static Error RepairTaskNotFound =>
     Error.NotFound(
             "RepairTask.NotFound",
