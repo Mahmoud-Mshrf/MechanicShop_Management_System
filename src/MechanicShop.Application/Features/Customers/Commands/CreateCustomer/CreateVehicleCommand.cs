@@ -1,4 +1,4 @@
-using MechanicShop.Application.Features.Customers.Commands.Dtos;
+using MechanicShop.Application.Features.Customers.Dtos;
 using MediatR;
 
 namespace MechanicShop.Application.Features.Customers.Commands.CreateCustomer;
