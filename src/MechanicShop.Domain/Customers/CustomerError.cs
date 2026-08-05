@@ -18,5 +18,8 @@ public static class CustomerError
 
     public static Error ExistedEmail
         => Error.Conflict("Existed_Email","Customer with this email is already exists"); 
+    
+    public static Error NotFound(string id)
+        => Error.NotFound("Not_Found_Customer",$"There is no customer with id : {id}"); 
 }
 
