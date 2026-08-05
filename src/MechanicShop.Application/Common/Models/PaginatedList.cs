@@ -3,28 +3,41 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MechanicShop.Application.Common.Models;
 
-public class PaginatedList<T>
+public sealed class PaginatedList<T> where T : class
 {
     public int PageNumber { get; init; }
     public int PageSize { get; init; }
     public int TotalPages { get; init; }
     public int TotalCount { get; init; }
 
-    public IReadOnlyCollection<T>? Items { get; init; }
+    public IReadOnlyCollection<T> Items { get; init; } = [];
 }
-public static class Pagination 
+public static class Pagination
 {
-    public static PaginatedList<T> Paginate<T>(this IEnumerable<T> values,int page, int size) where T : class
+    public static async Task<PaginatedList<T>> PaginateAsync<T>(
+        this IQueryable<T> query,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+        where T : class
     {
-        var items = values.Skip((page - 1 ) * size).Take(size).ToList().AsReadOnly();
-        var count = values.Count();
+        page = Math.Max(page, 1);
+        pageSize = Math.Max(pageSize, 1);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
         return new PaginatedList<T>
         {
-            Items = items,
+            Items = items.AsReadOnly(),
             PageNumber = page,
-            PageSize=size,
-            TotalPages = count/size,
-            TotalCount =count
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
         };
     }
 }

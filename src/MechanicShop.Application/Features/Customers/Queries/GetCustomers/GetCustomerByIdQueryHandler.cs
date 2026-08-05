@@ -10,12 +10,22 @@ using Microsoft.Extensions.Logging;
 
 namespace MechanicShop.Application.Features.Customers.Queries.GetCustomers;
 
-public sealed class GetCustomersQueryHandler(IAppDbContext context, ILogger<GetCustomersQuery> logger) : IRequestHandler<GetCustomersQuery, Result<PaginatedList<CustomerDto>>>
+public sealed class GetCustomersQueryHandler(
+    IAppDbContext context,
+    ILogger<GetCustomersQuery> logger)
+    : IRequestHandler<GetCustomersQuery, Result<PaginatedList<CustomerDto>>>
 {
-    public async Task<Result<PaginatedList<CustomerDto>>> Handle(GetCustomersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<CustomerDto>>> Handle(
+        GetCustomersQuery request,
+        CancellationToken cancellationToken)
     {
-        var customers = await context.Customers.Include(x=>x.Vehicles).ToListAsync(cancellationToken);
-        logger.LogInformation("customers retrieved");
-        return customers.ToDtos().Paginate(request.Page,request.PageSize);
+        var customers = await context.Customers.Include(x=>x.Vehicles)
+            .AsNoTracking()
+            .Select(CustomerMapper.ToDtoQueryable)
+            .PaginateAsync(request.Page, request.PageSize, cancellationToken);
+
+        logger.LogInformation("Customers retrieved.");
+
+        return customers;
     }
 }
