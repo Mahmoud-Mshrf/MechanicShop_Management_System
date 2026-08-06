@@ -25,16 +25,30 @@ public class CreateRepairTaskCommandHandler(IAppDbContext context, ILogger<Creat
         {
             return creationResult.Errors;
         }
-        var parts =await context.Parts.ToListAsync();
-        List<RepairTaskPart> taskParts = [];
-        foreach (var p in request.Dtos)
+
+        var requestedPartIds = request.Dtos
+            .Select(x => x.Id)
+            .ToList();
+
+        var existingPartIds = await context.Parts
+            .Where(p => requestedPartIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync(cancellationToken); 
+
+        foreach (var dto in request.Dtos)
         {
-            if (!parts.Any(x=>x.Id==p.Id))
+            if (!existingPartIds.Contains(dto.Id))
             {
                 return ApplicationErrors.PartNotFound;
             }
-            creationResult.Value.AddPart(p.Id,p.Quantity);
-        }
+
+            var result = creationResult.Value.AddPart(dto.Id, dto.Quantity);
+
+            if (result.IsError)
+            {
+                return result.Errors;
+            }
+        } 
         context.RepairTasks.Add(creationResult.Value);
         await cache.RemoveByTagAsync("repair-tasks");
         await context.SaveChangesAsync(cancellationToken);

@@ -1,8 +1,7 @@
 using MechanicShop.Domain.Common.Results;
-using MechanicShop.Domain.RepairTasks;
 using MechanicShop.Domain.RepairTasks.Parts;
 
-namespace MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
+namespace MechanicShop.Domain.RepairTasks;
 
 public class RepairTaskPart
 {
@@ -23,8 +22,18 @@ public class RepairTaskPart
         Quantity =quantity;
     }
 
-    public static Result<RepairTaskPart> Create(Guid partId,int quantity)
+    public static Result<RepairTaskPart> Create(Guid partId, int quantity)
+{
+    if (partId == Guid.Empty)
     {
-        return new RepairTaskPart(partId,quantity);
+        return RepairTaskPartErrors.InvalidPartId; // or RepairTaskPartErrors.InvalidPartId
     }
+
+    if (quantity <= 0 || quantity > 10)
+    {
+        return RepairTaskPartErrors.InvalidQuantity;
+    }
+
+    return new RepairTaskPart(partId, quantity);
+}
 }

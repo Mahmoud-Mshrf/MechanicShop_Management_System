@@ -1,4 +1,3 @@
-using MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
 using MechanicShop.Domain.Common;
 using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.RepairTasks.Enums;
@@ -86,11 +85,22 @@ public sealed class RepairTask:AuditableEntity
         return Result.Updated;
     }
 
-    public Result<Success> AddPart(Guid partId,int quantity)
+    public Result<Success> AddPart(Guid partId, int quantity)
     {
-        _parts!.Add(RepairTaskPart.Create(partId,quantity).Value);
+        if (_parts!.Any(x => x.PartId == partId))
+        {
+            return RepairTaskErrors.PartAlreadyAdded;
+        }
+
+        var creationResult = RepairTaskPart.Create(partId, quantity);
+
+        if (creationResult.IsError)
+        {
+            return creationResult.Errors;
+        }
+
+        _parts.Add(creationResult.Value);
 
         return Result.Success;
     }
-
 }

@@ -32,7 +32,7 @@ public class RepairTaskPartDtoValidator : AbstractValidator<RepairTaskPartDto>
 {
     public RepairTaskPartDtoValidator()
     {
-        RuleFor(x=>x.Guid)
+        RuleFor(x=>x.Id)
         .NotEmpty().WithMessage("Part id is required");
 
         RuleFor(x=>x.Quantity)

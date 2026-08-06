@@ -25,7 +25,7 @@ public sealed class WorkOrder : AuditableEntity
     public decimal? Discount {get ; private set;} = 0;
     public decimal? Tax {get; private set;}
     // public decimal? TotalPartsCost => RepairTasks.Sum(x=>x.Parts.Sum(p=>p.Cost * p.Quantity)); or
-    public decimal? TotalPartsCost => _repairTasks.SelectMany(rt => rt.Parts).Sum(p => p.Cost * p.Quantity);
+    public decimal? TotalPartsCost => _repairTasks.SelectMany(rt => rt.Parts).Sum(p => p.Part.Cost * p.Quantity);
     public decimal? TotalLaborCost => RepairTasks.Sum(x=>x.LaborCost);
     public decimal? TotalCost => (TotalLaborCost ?? 0) + (TotalPartsCost?? 0);
 
