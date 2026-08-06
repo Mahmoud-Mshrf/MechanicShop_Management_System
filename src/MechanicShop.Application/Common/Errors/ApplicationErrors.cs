@@ -17,10 +17,20 @@ public static class ApplicationErrors
            "Employee.LaborOccupied",
            "Labor is already occupied during the requested time.");
 
+    public static Error RepairTaskWithSameNameAlreadyExists =>
+    Error.Conflict(
+           "Repair_Task_With_Same_Name_Already_Exists",
+           "Repair_Task_With_Same_Name_Already_Exists.");
+
     public static Error CustomerNotFound =>
     Error.NotFound(
            "ApplicationErrors.Customer.NotFound",
            "Customer does not exist.");
+
+    public static Error PartNotFound =>
+    Error.NotFound(
+           "ApplicationErrors.Parts.NotFound",
+           "Part does not exist.");
 
     public static Error VehicleNotFound =>
     Error.NotFound(

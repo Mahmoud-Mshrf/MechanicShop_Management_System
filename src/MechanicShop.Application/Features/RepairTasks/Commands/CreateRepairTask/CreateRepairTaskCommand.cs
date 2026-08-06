@@ -5,4 +5,4 @@ using MediatR;
 
 namespace MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
 
-public sealed record CreateRepairTaskCommand(string Name, decimal LaborCost, RepairDurationInMinutes EstimatedDurationInMinutes, List<CreatePartCommand> Parts):IRequest<Result<RepairTaskDto>>;
+public sealed record CreateRepairTaskCommand(string Name, decimal LaborCost, RepairDurationInMinutes EstimatedDurationInMinutes, List<RepairTaskPartDto> Dtos):IRequest<Result<RepairTaskDto>>;

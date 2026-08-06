@@ -11,8 +11,5 @@ public class CreatePartCommandValidator : AbstractValidator<CreatePartCommand>
 
         RuleFor(x=>x.Cost)
         .GreaterThan(0).WithMessage("Part cost must be greater than 0");
-
-        RuleFor(x=>x.Quantity)
-        .GreaterThan(0).WithMessage("Quantity must be greater than 0");
     }
 }
