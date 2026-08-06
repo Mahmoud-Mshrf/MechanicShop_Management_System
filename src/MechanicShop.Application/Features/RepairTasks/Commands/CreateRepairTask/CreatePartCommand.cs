@@ -1,7 +1,0 @@
-using MechanicShop.Application.Features.RepairTasks.Dtos;
-using MediatR;
-
-namespace MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
-
-public sealed record CreatePartCommand(string Name , decimal Cost):IRequest<PartDto>;
-

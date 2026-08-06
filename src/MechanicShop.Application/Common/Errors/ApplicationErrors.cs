@@ -42,6 +42,10 @@ public static class ApplicationErrors
             "Vehicle_Overlapping_WorkOrder",
             "The vehicle already has an overlapping WorkOrder.");
 
+    public static Error PartWithSameNameAlreadyCreated =>
+    Error.Conflict(
+            "Part_With_Same_Name_Already_Created",
+            "Part with the same name already created.");
     public static Error CustomerHasActiveWorkOrders =>
     Error.Conflict(
             "Customer_Has_Active_Work_Orders",

@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
+namespace MechanicShop.Application.Features.Parts.Commands.CreatePart;
 
 public class CreatePartCommandValidator : AbstractValidator<CreatePartCommand>
 {
