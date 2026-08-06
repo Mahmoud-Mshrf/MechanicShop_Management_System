@@ -51,6 +51,11 @@ public static class ApplicationErrors
             "Customer_Has_Active_Work_Orders",
             "Customer has active work orders.");
 
+    public static Error ThereAreRepairTasksUsedThisPart =>
+    Error.Conflict(
+            "There_Are_RepairTasks_Used_This_Part",
+            "Part is being used by some of repair tasks.");
+
     public static Error RepairTaskNotFound =>
     Error.NotFound(
             "RepairTask.NotFound",
