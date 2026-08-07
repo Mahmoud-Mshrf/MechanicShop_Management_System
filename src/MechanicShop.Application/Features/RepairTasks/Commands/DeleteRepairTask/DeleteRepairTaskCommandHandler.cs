@@ -15,7 +15,7 @@ public class DeleteRepairTaskCommandHandler(IAppDbContext context,HybridCache ca
     {
         
         // 1- check if it is null
-        var repairTask = await context.RepairTasks.FindAsync(request.Id);
+        var repairTask = await context.RepairTasks.FirstOrDefaultAsync(x=>x.Id==request.Id,cancellationToken);
         if (repairTask is null)
         {
             return ApplicationErrors.RepairTaskNotFound;
@@ -26,15 +26,15 @@ public class DeleteRepairTaskCommandHandler(IAppDbContext context,HybridCache ca
         //     .AnyAsync(x=>x.RepairTasks.Contains(repairTask));
         // or 
         // var inUse = await context.WorkOrders.AnyAsync(x=>x.RepairTasks.Any(x=>x.Id==request.Id)); or 
-        var inUse = await context.WorkOrders.SelectMany(x=>x.RepairTasks).AnyAsync(x=>x.Id==request.Id);
+        var inUse = await context.WorkOrders.SelectMany(x=>x.RepairTasks).AnyAsync(x=>x.Id==request.Id,cancellationToken);
         if (inUse)
         {
             return ApplicationErrors.IncludedInActiveOrders;
         }
         // 3- delete if its free from responsibilities
         context.RepairTasks.Remove(repairTask);
-        await cache.RemoveByTagAsync("repair-tasks");
         await context.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync("repair-tasks");
         logger.LogInformation("Repair task :{TaskName} with id {TaskId} was deleted successfully",repairTask.Name,repairTask.Id);
 
         return Result.Deleted;
