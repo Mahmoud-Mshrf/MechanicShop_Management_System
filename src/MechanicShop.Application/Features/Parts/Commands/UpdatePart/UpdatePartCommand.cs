@@ -10,3 +10,4 @@ public class UpdatePartRequest
     public string Name {get;set;}
     public decimal Cost {get;set;}
 }
+

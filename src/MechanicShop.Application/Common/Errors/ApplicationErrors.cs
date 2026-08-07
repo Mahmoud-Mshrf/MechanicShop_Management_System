@@ -17,6 +17,11 @@ public static class ApplicationErrors
            "Employee.LaborOccupied",
            "Labor is already occupied during the requested time.");
 
+    public static Error IncludedInActiveOrders =>
+    Error.Conflict(
+           "RepairTask.IncludedInActiveOrders",
+           "Repair task is IncludedInActiveOrders");
+
     public static Error RepairTaskWithSameNameAlreadyExists =>
     Error.Conflict(
            "Repair_Task_With_Same_Name_Already_Exists",
