@@ -21,10 +21,13 @@ public class DeleteRepairTaskCommandHandler(IAppDbContext context,HybridCache ca
             return ApplicationErrors.RepairTaskNotFound;
         }
         // 2- check if it is included in active work orders (Scheduled or in progress)
-        var IncludedInActiveOrders = await context.WorkOrders.Include(x=>x.RepairTasks)
-            .Where(x=>x.OrderState==OrderState.InProgress|| x.OrderState==OrderState.Scheduled)
-            .AnyAsync(x=>x.RepairTasks.Contains(repairTask));
-        if (IncludedInActiveOrders)
+        // var IncludedInActiveOrders = await context.WorkOrders.Include(x=>x.RepairTasks)
+        //     .Where(x=>x.OrderState==OrderState.InProgress|| x.OrderState==OrderState.Scheduled)
+        //     .AnyAsync(x=>x.RepairTasks.Contains(repairTask));
+        // or 
+        // var inUse = await context.WorkOrders.AnyAsync(x=>x.RepairTasks.Any(x=>x.Id==request.Id)); or 
+        var inUse = await context.WorkOrders.SelectMany(x=>x.RepairTasks).AnyAsync(x=>x.Id==request.Id);
+        if (inUse)
         {
             return ApplicationErrors.IncludedInActiveOrders;
         }
