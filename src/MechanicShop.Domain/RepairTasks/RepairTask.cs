@@ -39,13 +39,13 @@ public sealed class RepairTask:AuditableEntity
 
         return new RepairTask(id, name.Trim(), laborCost, estimatedDurationInMins);
     }
-    public Result<Deleted> RemoveParts(List<Guid> PartsIds)
+    public Result<Deleted> RemoveParts(List<Guid> partIds)
     {
-        if (PartsIds.Count <=0 || PartsIds is null)
-        {
+        if (partIds is null || partIds.Count == 0)
             return RepairTaskErrors.PartsRequired;
-        }
-        _parts!.RemoveAll(existingParts=> PartsIds.All(x=>x==existingParts.PartId));
+
+        _parts.RemoveAll(x => partIds.Contains(x.PartId));
+
         return Result.Deleted;
     }
     public Result<Updated> Update(string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins)
@@ -71,7 +71,20 @@ public sealed class RepairTask:AuditableEntity
 
         return Result.Updated;
     }
+    public Result<Updated> UpdatePartQuantity(Guid partId, int quantity)
+    {
+        var part = _parts.FirstOrDefault(x => x.PartId == partId);
 
+        if (part is null)
+            return RepairTaskErrors.PartNotFound;
+
+        var result = part.UpdateQuantity(quantity);
+
+        if (result.IsError)
+            return result.Errors;
+
+        return Result.Updated;
+    }
     public Result<Success> AddPart(Guid partId, int quantity)
     {
         if (_parts!.Any(x => x.PartId == partId))

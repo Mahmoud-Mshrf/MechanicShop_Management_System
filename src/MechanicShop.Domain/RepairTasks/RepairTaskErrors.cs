@@ -34,4 +34,9 @@ public static class RepairTaskErrors
     public static Error PartAlreadyAdded =>
 
     Error.Conflict("RepairTaskPart.PartAlreadyAdded", "A part with the same information already exists in this repair task.");
+
+
+    public static Error PartNotFound =>
+
+    Error.Conflict("RepairTaskPart.PartNotFound", "Part not found.");
 }

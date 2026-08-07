@@ -23,17 +23,26 @@ public class RepairTaskPart
     }
 
     public static Result<RepairTaskPart> Create(Guid partId, int quantity)
-{
-    if (partId == Guid.Empty)
     {
-        return RepairTaskPartErrors.InvalidPartId; // or RepairTaskPartErrors.InvalidPartId
-    }
+        if (partId == Guid.Empty)
+        {
+            return RepairTaskPartErrors.InvalidPartId; // or RepairTaskPartErrors.InvalidPartId
+        }
 
-    if (quantity <= 0 || quantity > 10)
+        if (quantity <= 0 || quantity > 10)
+        {
+            return RepairTaskPartErrors.InvalidQuantity;
+        }
+
+        return new RepairTaskPart(partId, quantity);
+    }
+    public Result<Updated> UpdateQuantity(int quantity)
     {
-        return RepairTaskPartErrors.InvalidQuantity;
-    }
+        if (quantity <= 0)
+            return RepairTaskPartErrors.InvalidQuantity;
 
-    return new RepairTaskPart(partId, quantity);
-}
+        Quantity = quantity;
+
+        return Result.Updated;
+    }
 }
