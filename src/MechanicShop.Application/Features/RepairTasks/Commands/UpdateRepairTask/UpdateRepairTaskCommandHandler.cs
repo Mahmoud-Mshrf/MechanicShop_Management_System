@@ -101,7 +101,7 @@ public async Task<Result<Updated>> Handle(
 
     await context.SaveChangesAsync(cancellationToken);
 
-    await cache.RemoveAsync($"RepairTask:{repairTask.Id}", cancellationToken);
+    await cache.RemoveByTagAsync("repair-tasks", cancellationToken);
 
     logger.LogInformation(
         "Repair task {RepairTaskId} updated successfully.",
