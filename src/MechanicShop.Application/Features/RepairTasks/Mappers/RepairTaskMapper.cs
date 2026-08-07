@@ -1,4 +1,4 @@
-using MechanicShop.Application.Features.RepairTasks.Dtos;
+﻿using MechanicShop.Application.Features.RepairTasks.Dtos;
 using MechanicShop.Domain.RepairTasks;
 using MechanicShop.Domain.RepairTasks.Parts;
 
@@ -6,28 +6,41 @@ namespace MechanicShop.Application.Features.RepairTasks.Mappers;
 
 public static class RepairTaskMapper
 {
-    public static RepairTaskDto ToDto(this RepairTask task)
+    public static RepairTaskDto ToDto(this RepairTask entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         return new RepairTaskDto
         {
-            Id=task.Id,
-            LaborCost=task.LaborCost,
-            Name=task.Name,
-            RepairDurationInMinutes=task.EstimatedDurationInMinutes,
-            TotalCost=task.TotalCost,
-            Parts=task.Parts.Select(x=>x.ToDto())
+            RepairTaskId = entity.Id,
+            Name = entity.Name!,
+            LaborCost = entity.LaborCost,
+            TotalCost = entity.TotalCost,
+            EstimatedDurationInMins = entity.EstimatedDurationInMins,
+            Parts = entity.Parts.ToList().ConvertAll(ToDto)
         };
     }
-    public static ReturnRepairTaskPartDto ToDto(this RepairTaskPart part)
+
+    public static List<RepairTaskDto> ToDtos(this IEnumerable<RepairTask> entities)
     {
-        var totalCost = part.Part.Cost * part.Quantity;
-        return new ReturnRepairTaskPartDto
+        return [.. entities.Select(e => e.ToDto())];
+    }
+
+    public static PartDto ToDto(this Part entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        return new PartDto
         {
-            Cost=part.Part.Cost,
-            Id=part.PartId,
-            Name=part.Part.Name!,
-            Quantity=part.Quantity,
-            TotalCost=totalCost
+            PartId = entity.Id,
+            Name = entity.Name!,
+            Cost = entity.Cost,
+            Quantity = entity.Quantity
         };
+    }
+
+    public static List<PartDto> ToDtos(this IEnumerable<Part> entities)
+    {
+        return [.. entities.Select(e => e.ToDto())];
     }
 }

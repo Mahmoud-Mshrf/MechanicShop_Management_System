@@ -1,14 +1,15 @@
-using MechanicShop.Domain.Common.Results;
+﻿using MechanicShop.Domain.Common.Results;
 
-namespace MechanicShop.Domain.RepairTasks.Parts
+namespace MechanicShop.Domain.RepairTasks.Parts;
+
+public static class PartErrors
 {
-    public static class PartErrors
-    {
-        public static Error NameRequired
-            => Error.Validation("PartName_Is_Required","Part name is required");
+    public static readonly Error NameRequired =
+        Error.Validation("Part.Name.Required", "Part name is required.");
 
-        public static Error InvalidCost
-            => Error.Validation("Part_Invalid_Cost","Part cost is invalid, must be between 1 and 10000");
-        
-    }
+    public static readonly Error CostInvalid =
+        Error.Validation("Part.Cost.Invalid", "Part cost must be between 1 and 10,000.");
+
+    public static readonly Error QuantityInvalid =
+        Error.Validation("Part.Quantity.Invalid", "Quantity must be between 1 and 10.");
 }

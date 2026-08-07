@@ -1,112 +1,74 @@
-using MechanicShop.Application.Common.Errors;
+﻿using MechanicShop.Application.Common.Errors;
 using MechanicShop.Application.Common.Interfaces;
 using MechanicShop.Domain.Common.Results;
-using MechanicShop.Domain.WorkOrders.Enums;
+using MechanicShop.Domain.RepairTasks.Parts;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace MechanicShop.Application.Features.RepairTasks.Commands.UpdateRepairTask;
 
-public class UpdateRepairTaskCommandHandler(IAppDbContext context,HybridCache cache,ILogger<UpdateRepairTaskCommandHandler> logger) : IRequestHandler<UpdateRepairTaskCommand, Result<Updated>>
+public class UpdateRepairTaskCommandHandler(
+    ILogger<UpdateRepairTaskCommandHandler> logger,
+    IAppDbContext context,
+    HybridCache cache
+    )
+    : IRequestHandler<UpdateRepairTaskCommand, Result<Updated>>
 {
-public async Task<Result<Updated>> Handle(
-    UpdateRepairTaskCommand request,
-    CancellationToken cancellationToken)
-{
-    var repairTask = await context.RepairTasks
-        .Include(x => x.Parts)
-        .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+    private readonly ILogger<UpdateRepairTaskCommandHandler> _logger = logger;
+    private readonly IAppDbContext _context = context;
+    private readonly HybridCache _cache = cache;
 
-    if (repairTask is null)
-        return ApplicationErrors.RepairTaskNotFound;
-
-    var includedInActiveOrders = await context.WorkOrders.AnyAsync(
-        x =>
-            x.RepairTasks.Any(r => r.Id == request.Id) &&
-            x.OrderState == OrderState.InProgress,
-        cancellationToken);
-
-    if (includedInActiveOrders)
-        return ApplicationErrors.IncludedInActiveOrders;
-
-    var updateResult = repairTask.Update(
-        request.Name,
-        request.LaborCost,
-        request.EstimatedDurationInMinutes);
-
-    if (updateResult.IsError)
-        return updateResult.Errors;
-
-    //---------------------------------------
-    // Validate request
-    //---------------------------------------
-
-    var requestParts = request.RepairTaskPartDtos;
-
-    var requestIds = requestParts
-        .Select(x => x.Id)
-        .ToList();
-
-    if (requestIds.Count != requestIds.Distinct().Count())
-        return ApplicationErrors.DuplicateParts;
-
-    var existingIds = await context.Parts
-        .Where(x => requestIds.Contains(x.Id))
-        .Select(x => x.Id)
-        .ToListAsync(cancellationToken);
-
-    if (existingIds.Count != requestIds.Count)
-        return ApplicationErrors.PartNotFound;
-
-    //---------------------------------------
-    // Remove deleted parts
-    //---------------------------------------
-
-    var idsToRemove = repairTask.Parts
-        .Select(x => x.PartId)
-        .Except(requestIds)
-        .ToList();
-
-    if (idsToRemove.Count > 0)
+    public async Task<Result<Updated>> Handle(UpdateRepairTaskCommand command, CancellationToken ct)
     {
-        var removeResult = repairTask.RemoveParts(idsToRemove);
+        var repairTask = await _context.RepairTasks
+            .Include(rt => rt.Parts)
+            .FirstOrDefaultAsync(rt => rt.Id == command.RepairTaskId, ct);
 
-        if (removeResult.IsError)
-            return removeResult.Errors;
-    }
-
-    //---------------------------------------
-    // Add new parts / update existing ones
-    //---------------------------------------
-
-    foreach (var dto in requestParts)
-    {
-        if (repairTask.Parts.Any(x => x.PartId == dto.Id))
+        if (repairTask is null)
         {
-            var result = repairTask.UpdatePartQuantity(dto.Id, dto.Quantity);
+            _logger.LogWarning("RepairTask {RepairTaskId} not found for update.", command.RepairTaskId);
 
-            if (result.IsError)
-                return result.Errors;
+            return ApplicationErrors.RepairTaskNotFound;
         }
-        else
+
+        var validatedParts = new List<Part>();
+
+        foreach (var p in command.Parts)
         {
-            var result = repairTask.AddPart(dto.Id, dto.Quantity);
+            var partId = p.PartId ?? Guid.NewGuid();
 
-            if (result.IsError)
-                return result.Errors;
+            var partResult = Part.Create(partId, p.Name, p.Cost, p.Quantity);
+
+            if (partResult.IsError)
+            {
+                return partResult.Errors;
+            }
+
+            validatedParts.Add(partResult.Value);
         }
+
+        var updateRepairTaskResult = repairTask.Update(command.Name, command.LaborCost, command.EstimatedDurationInMins);
+
+        if (updateRepairTaskResult.IsError)
+        {
+            return updateRepairTaskResult.Errors;
+        }
+
+        var upsertPartsResult = repairTask.UpsertParts(validatedParts);
+
+        if (upsertPartsResult.IsError)
+        {
+            return upsertPartsResult.Errors;
+        }
+
+        await _context.SaveChangesAsync(ct); // The database operation was expected to affect 1 row(s), but actually affected 0 row(s);
+
+        await _cache.RemoveByTagAsync("repair-task", ct);
+
+        return Result.Updated;
     }
-
-    await context.SaveChangesAsync(cancellationToken);
-
-    await cache.RemoveByTagAsync("repair-tasks", cancellationToken);
-
-    logger.LogInformation(
-        "Repair task {RepairTaskId} updated successfully.",
-        repairTask.Id);
-
-    return Result.Updated;
-}
 }

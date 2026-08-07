@@ -1,59 +1,75 @@
-using MechanicShop.Application.Common.Errors;
 using MechanicShop.Application.Common.Interfaces;
 using MechanicShop.Application.Features.RepairTasks.Dtos;
 using MechanicShop.Application.Features.RepairTasks.Mappers;
 using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.RepairTasks;
+using MechanicShop.Domain.RepairTasks.Parts;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
 
-public class CreateRepairTaskCommandHandler(IAppDbContext context, ILogger<CreateRepairTaskCommandHandler> logger, HybridCache cache) : IRequestHandler<CreateRepairTaskCommand, Result<RepairTaskDto>>
+public class CreateRepairTaskCommandHandler(
+    ILogger<CreateRepairTaskCommandHandler> logger,
+    IAppDbContext context,
+    HybridCache cache
+    )
+    : IRequestHandler<CreateRepairTaskCommand, Result<RepairTaskDto>>
 {
-    public async Task<Result<RepairTaskDto>> Handle(CreateRepairTaskCommand request, CancellationToken cancellationToken)
+    private readonly ILogger<CreateRepairTaskCommandHandler> _logger = logger;
+    private readonly IAppDbContext _context = context;
+    private readonly HybridCache _cache = cache;
+
+    public async Task<Result<RepairTaskDto>> Handle(CreateRepairTaskCommand command, CancellationToken ct)
     {
-        var task =await context.RepairTasks.FirstOrDefaultAsync(x=>x.Name!.Trim().ToLower() == request.Name.Trim().ToLower());
-        if (task is not null)
+        var nameExists = await _context.RepairTasks
+           .AnyAsync(p => EF.Functions.Like(p.Name, command.Name), ct);
+
+        if (nameExists)
         {
-            return ApplicationErrors.RepairTaskWithSameNameAlreadyExists;
+            _logger.LogWarning("Duplicate part name '{PartName}'.", command.Name);
+
+            return RepairTaskErrors.DuplicateName;
         }
-        var creationResult = RepairTask.Create(Guid.NewGuid(),request.Name,request.LaborCost,request.EstimatedDurationInMinutes);
-        if (creationResult.IsError)
+
+        List<Part> parts = [];
+
+        foreach (var p in command.Parts)
         {
-            return creationResult.Errors;
-        }
+            var partResult = Part.Create(Guid.NewGuid(), p.Name, p.Cost, p.Quantity);
 
-        var requestedPartIds = request.Dtos
-            .Select(x => x.Id)
-            .ToList();
-
-        var existingPartIds = await context.Parts
-            .Where(p => requestedPartIds.Contains(p.Id))
-            .Select(p => p.Id)
-            .ToListAsync(cancellationToken); 
-
-        foreach (var dto in request.Dtos)
-        {
-            if (!existingPartIds.Contains(dto.Id))
+            if (partResult.IsError)
             {
-                return ApplicationErrors.PartNotFound;
+                return partResult.Errors;
             }
 
-            var result = creationResult.Value.AddPart(dto.Id, dto.Quantity);
+            parts.Add(partResult.Value);
+        }
 
-            if (result.IsError)
-            {
-                return result.Errors;
-            }
-        } 
-        context.RepairTasks.Add(creationResult.Value);
-        await cache.RemoveByTagAsync("repair-tasks");
-        await context.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("RepairTask created successfully");
-        // var creationResult = RepairTask.Create(Guid.NewGuid(),request.Name,request.LaborCost,request.EstimatedDurationInMinutes);
-        return creationResult.Value.ToDto();
+        var createRepairTaskResult = RepairTask.Create(
+                    id: Guid.NewGuid(),
+                    name: command.Name!,
+                    laborCost: command.LaborCost,
+                    estimatedDurationInMins: command.EstimatedDurationInMins!.Value,
+                    parts: parts);
+
+        if (createRepairTaskResult.IsError)
+        {
+            return createRepairTaskResult.Errors;
+        }
+
+        var repairTask = createRepairTaskResult.Value;
+
+        _context.RepairTasks.Add(repairTask);
+
+        await _context.SaveChangesAsync(ct);
+
+        await _cache.RemoveByTagAsync("repair-task", ct);
+
+        return repairTask.ToDto();
     }
 }

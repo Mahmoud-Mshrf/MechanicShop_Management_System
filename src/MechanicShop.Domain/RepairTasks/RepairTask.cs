@@ -5,22 +5,33 @@ using MechanicShop.Domain.RepairTasks.Parts;
 
 namespace MechanicShop.Domain.RepairTasks;
 
-public sealed class RepairTask:AuditableEntity
+public sealed class RepairTask : AuditableEntity
 {
-    public string? Name {get;private set;}
-    public decimal LaborCost {get; private set;}
-    public RepairDurationInMinutes EstimatedDurationInMinutes {get;private set;}
-    private readonly List<RepairTaskPart>? _parts = [];
-    public IEnumerable<RepairTaskPart> Parts => _parts!.AsReadOnly();
-    public  decimal TotalCost => LaborCost + Parts!.Sum(p=>p.Part.Cost * p.Quantity);
+    public string Name { get; private set; }
+    public decimal LaborCost { get; private set; }
+    public RepairDurationInMinutes EstimatedDurationInMins { get; private set; }
 
-    private RepairTask(Guid id,string? name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMinutes):base(id)
+    private readonly List<Part> _parts = [];
+    public IEnumerable<Part> Parts => _parts.AsReadOnly();
+    public decimal TotalCost => LaborCost + Parts.Sum(p => p.Cost * p.Quantity);
+
+#pragma warning disable CS8618
+
+    private RepairTask()
+    { }
+
+#pragma warning restore CS8618
+
+    private RepairTask(Guid id, string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins, List<Part> parts)
+        : base(id)
     {
         Name = name;
         LaborCost = laborCost;
-        EstimatedDurationInMinutes = estimatedDurationInMinutes;
+        EstimatedDurationInMins = estimatedDurationInMins;
+        _parts = parts;
     }
-    public static Result<RepairTask> Create(Guid id, string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins)
+
+    public static Result<RepairTask> Create(Guid id, string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins, List<Part> parts)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -37,17 +48,33 @@ public sealed class RepairTask:AuditableEntity
             return RepairTaskErrors.DurationInvalid;
         }
 
-        return new RepairTask(id, name.Trim(), laborCost, estimatedDurationInMins);
+        return new RepairTask(id, name.Trim(), laborCost, estimatedDurationInMins, parts);
     }
-    public Result<Deleted> RemoveParts(List<Guid> partIds)
+
+    public Result<Updated> UpsertParts(List<Part> incomingParts)
     {
-        if (partIds is null || partIds.Count == 0)
-            return RepairTaskErrors.PartsRequired;
+        _parts.RemoveAll(existing => incomingParts.All(p => p.Id != existing.Id));
 
-        _parts.RemoveAll(x => partIds.Contains(x.PartId));
+        foreach (var incoming in incomingParts)
+        {
+            var existing = _parts.FirstOrDefault(p => p.Id == incoming.Id);
+            if (existing is null)
+            {
+                _parts.Add(incoming);
+            }
+            else
+            {
+                var updatePartResult = existing.Update(incoming.Name, incoming.Cost, incoming.Quantity);
+                if (updatePartResult.IsError)
+                {
+                    return updatePartResult.Errors;
+                }
+            }
+        }
 
-        return Result.Deleted;
+        return Result.Updated;
     }
+
     public Result<Updated> Update(string name, decimal laborCost, RepairDurationInMinutes estimatedDurationInMins)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -67,40 +94,8 @@ public sealed class RepairTask:AuditableEntity
 
         Name = name.Trim();
         LaborCost = laborCost;
-        EstimatedDurationInMinutes = estimatedDurationInMins;
+        EstimatedDurationInMins = estimatedDurationInMins;
 
         return Result.Updated;
-    }
-    public Result<Updated> UpdatePartQuantity(Guid partId, int quantity)
-    {
-        var part = _parts.FirstOrDefault(x => x.PartId == partId);
-
-        if (part is null)
-            return RepairTaskErrors.PartNotFound;
-
-        var result = part.UpdateQuantity(quantity);
-
-        if (result.IsError)
-            return result.Errors;
-
-        return Result.Updated;
-    }
-    public Result<Success> AddPart(Guid partId, int quantity)
-    {
-        if (_parts!.Any(x => x.PartId == partId))
-        {
-            return RepairTaskErrors.PartAlreadyAdded;
-        }
-
-        var creationResult = RepairTaskPart.Create(partId, quantity);
-
-        if (creationResult.IsError)
-        {
-            return creationResult.Errors;
-        }
-
-        _parts.Add(creationResult.Value);
-
-        return Result.Success;
     }
 }

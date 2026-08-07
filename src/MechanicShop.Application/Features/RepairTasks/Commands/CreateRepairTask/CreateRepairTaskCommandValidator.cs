@@ -1,15 +1,11 @@
-using System.Security.Cryptography.X509Certificates;
-using FluentValidation;
-using FluentValidation.Validators;
-using MechanicShop.Application.Features.RepairTasks.Dtos;
+﻿using FluentValidation;
 
 namespace MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
 
-public class CreateRepairTaskCommandValidator : AbstractValidator<CreateRepairTaskCommand>
+public sealed class CreateRepairTaskCommandValidator : AbstractValidator<CreateRepairTaskCommand>
 {
     public CreateRepairTaskCommandValidator()
     {
-
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required.")
             .MaximumLength(100);
@@ -17,25 +13,14 @@ public class CreateRepairTaskCommandValidator : AbstractValidator<CreateRepairTa
         RuleFor(x => x.LaborCost)
             .GreaterThan(0).WithMessage("Labor cost must be greater than 0.");
 
-        RuleFor(x => x.EstimatedDurationInMinutes)
+        RuleFor(x => x.EstimatedDurationInMins)
             .NotNull().WithMessage("Estimated duration is required.")
             .IsInEnum();
 
-        RuleForEach(x=>x.Dtos)
-        .SetValidator(new RepairTaskPartDtoValidator());
-        
+        RuleFor(x => x.Parts)
+            .NotNull().WithMessage("Parts list cannot be null.")
+            .Must(p => p.Count > 0).WithMessage("At least one part is required.");
 
-    }
-}
-
-public class RepairTaskPartDtoValidator : AbstractValidator<RepairTaskPartDto>
-{
-    public RepairTaskPartDtoValidator()
-    {
-        RuleFor(x=>x.Id)
-        .NotEmpty().WithMessage("Part id is required");
-
-        RuleFor(x=>x.Quantity)
-        .GreaterThanOrEqualTo(1).WithMessage("Quantity of any part must be equal or greater than 1");
+        RuleForEach(x => x.Parts).SetValidator(new CreateRepairTaskPartCommandValidator());
     }
 }

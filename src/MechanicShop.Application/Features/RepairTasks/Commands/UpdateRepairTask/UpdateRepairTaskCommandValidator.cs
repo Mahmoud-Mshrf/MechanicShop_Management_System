@@ -1,35 +1,32 @@
-using FluentValidation;
-using MechanicShop.Application.Features.RepairTasks.Commands.CreateRepairTask;
+﻿using FluentValidation;
 
 namespace MechanicShop.Application.Features.RepairTasks.Commands.UpdateRepairTask;
 
-public sealed class UpdateRepairTaskCommandValidator
-    : AbstractValidator<UpdateRepairTaskCommand>
+public class UpdateRepairTaskCommandValidator : AbstractValidator<UpdateRepairTaskCommand>
 {
     public UpdateRepairTaskCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty()
-            .WithMessage("Repair task id is required.");
+        RuleFor(x => x.RepairTaskId)
+            .NotEmpty().WithMessage("Repair task ID is required.");
 
         RuleFor(x => x.Name)
-            .NotEmpty()
+            .NotEmpty().WithMessage("Task name is required.")
             .MaximumLength(100);
 
         RuleFor(x => x.LaborCost)
-            .GreaterThan(0);
+            .InclusiveBetween(1, 10_000)
+            .WithMessage("Labor cost must be between 1 and 10,000.");
 
-        RuleFor(x => x.EstimatedDurationInMinutes)
-            .IsInEnum();
+        RuleFor(x => x.EstimatedDurationInMins)
+            .IsInEnum()
+            .WithMessage("Invalid duration selected.");
 
-        RuleFor(x => x.RepairTaskPartDtos)
-            .NotNull();
+        RuleFor(x => x.Parts)
+            .NotNull()
+            .Must(p => p.Count > 0)
+            .WithMessage("At least one part is required.");
 
-        RuleFor(x => x.RepairTaskPartDtos)
-            .Must(parts => parts.Select(p => p.Id).Distinct().Count() == parts.Count)
-            .WithMessage("A part cannot be added more than once.");
-
-        RuleForEach(x => x.RepairTaskPartDtos)
-            .SetValidator(new RepairTaskPartDtoValidator());
+        RuleForEach(x => x.Parts)
+            .SetValidator(new UpdateRepairTaskPartCommandValidator());
     }
 }

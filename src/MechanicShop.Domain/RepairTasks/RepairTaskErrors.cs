@@ -1,4 +1,4 @@
-using MechanicShop.Domain.Common.Results;
+﻿using MechanicShop.Domain.Common.Results;
 
 namespace MechanicShop.Domain.RepairTasks;
 
@@ -30,13 +30,4 @@ public static class RepairTaskErrors
     public static Error DuplicateName =>
 
     Error.Conflict("RepairTaskPart.Duplicate", "A part with the same name already exists in this repair task.");
-
-    public static Error PartAlreadyAdded =>
-
-    Error.Conflict("RepairTaskPart.PartAlreadyAdded", "A part with the same information already exists in this repair task.");
-
-
-    public static Error PartNotFound =>
-
-    Error.Conflict("RepairTaskPart.PartNotFound", "Part not found.");
 }
