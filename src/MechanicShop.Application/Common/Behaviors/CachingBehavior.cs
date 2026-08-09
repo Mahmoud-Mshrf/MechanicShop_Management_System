@@ -17,7 +17,7 @@ public class CachingBehavior<TRequest, TResponse>(HybridCache cache, ILogger<Cac
         }
 
         logger.LogInformation("Checking cache for {requestName}",typeof(TRequest).Name);
-        var result =await cache.GetOrCreateAsync(cachedRequest.CachingKey,factory :async cancellationToken =>
+        var result =await cache.GetOrCreateAsync(cachedRequest.CacheKey,factory :async cancellationToken =>
         {
             var innerResult = await next(cancellationToken);
             if (innerResult is IResult r && r.IsSuccess)

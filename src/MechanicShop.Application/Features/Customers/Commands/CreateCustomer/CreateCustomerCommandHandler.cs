@@ -4,52 +4,77 @@ using MechanicShop.Application.Features.Customers.Mappers;
 using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.Customers;
 using MechanicShop.Domain.Customers.Vehicles;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace MechanicShop.Application.Features.Customers.Commands.CreateCustomer;
 
-public class CreateCustomerCommandHandler(IAppDbContext context,ILogger<CreateCustomerCommandHandler> logger,HybridCache cache) : IRequestHandler<CreateCustomerCommand, Result<CustomerDto>>
+public class CreateCustomerCommandHandler(
+    ILogger<CreateCustomerCommandHandler> logger,
+    IAppDbContext context,
+    HybridCache cache
+    )
+    : IRequestHandler<CreateCustomerCommand, Result<CustomerDto>>
 {
-    public async Task<Result<CustomerDto>> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
+    private readonly ILogger<CreateCustomerCommandHandler> _logger = logger;
+    private readonly IAppDbContext _context = context;
+    private readonly HybridCache _cache = cache;
+
+    public async Task<Result<CustomerDto>> Handle(CreateCustomerCommand command, CancellationToken ct)
     {
-        var customer = await context.Customers.FirstOrDefaultAsync(x=>x.Email!.ToLower().Trim()==request.Email.ToLower().Trim());
-        if (customer is not null)
+        var email = command.Email.Trim().ToLower();
+
+        var exists = await _context.Customers.AnyAsync(
+            c => c.Email!.ToLower() == email,
+            ct);
+
+        if (exists)
         {
-            logger.LogWarning("Customer creation aborted , Email already exists");
-            return CustomerError.ExistedEmail;
+            _logger.LogWarning("Customer creation aborted. Email already exists.");
+
+            return CustomerError.CustomerExists;
         }
 
-        List<Vehicle> vehicles =[];
+        List<Vehicle> vehicles = [];
 
-        foreach (var v in request.vehicles)
+        foreach (var v in command.Vehicles)
         {
-            var creationResult = Vehicle.Create(Guid.NewGuid(),v.Make,v.Model,v.Year,v.LicensePlate);
+            var vehicleResult = Vehicle.Create(Guid.NewGuid(), v.Make, v.Model, v.Year, v.LicensePlate);
 
-            if (creationResult.IsError)
+            if (vehicleResult.IsError)
             {
-                logger.LogWarning("Vehicle creation aborted");
-                return creationResult.Errors;
+                return vehicleResult.Errors;
             }
-            vehicles.Add(creationResult.Value);
+
+            vehicles.Add(vehicleResult.Value);
         }
 
-        var createdCustomer = Customer.Create(Guid.NewGuid(),request.Name,request.PhoneNumber,request.Email,vehicles);
+        var createCustomerResult = Customer.Create(
+            Guid.NewGuid(),
+            command.Name.Trim(),
+            command.PhoneNumber.Trim(),
+            command.Email.Trim(),
+            vehicles);
 
-        if (createdCustomer.IsError)
+        if (createCustomerResult.IsError)
         {
-            return createdCustomer.Errors;
+            return createCustomerResult.Errors;
         }
 
-        await context.Customers.AddAsync(createdCustomer.Value, cancellationToken);
+        _context.Customers.Add(createCustomerResult.Value);
 
-        await context.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Customer with email : {email} was created successfully",request.Email);
-        await cache.RemoveByTagAsync("Customers");
-        
-        return createdCustomer.Value.ToDto();
+        await _context.SaveChangesAsync(ct);
 
+        await _cache.RemoveByTagAsync("customer", ct);
+
+        var customer = createCustomerResult.Value;
+
+        _logger.LogInformation("Customer created successfully. Id: {CustomerId}", createCustomerResult.Value.Id);
+
+        return customer.ToDto();
     }
 }

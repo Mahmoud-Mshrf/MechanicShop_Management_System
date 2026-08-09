@@ -1,8 +1,14 @@
+using MechanicShop.Application.Common.Interfaces;
 using MechanicShop.Application.Features.Customers.Dtos;
 using MechanicShop.Domain.Common.Results;
-using MediatR;
-using Microsoft.Extensions.Caching.Hybrid;
 
 namespace MechanicShop.Application.Features.Customers.Queries.GetCustomerById;
 
-public sealed record GetCustomerByIdQuery(Guid Id):IRequest<Result<CustomerDto>>;
+public sealed record GetCustomerByIdQuery(Guid CustomerId) : ICachedQuery<Result<CustomerDto>>
+{
+    public string CacheKey => $"customer_{CustomerId}";
+
+    public TimeSpan Expiration => TimeSpan.FromMinutes(10);
+
+    public string[] Tags => ["customer"];
+}

@@ -1,13 +1,13 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace MechanicShop.Application.Features.Customers.Commands.UpdateCustomer;
 
-public class UpdateVehicleCommandValidator : AbstractValidator<UpdateVehicleCommand>
+public sealed class UpdateVehicleCommandValidator : AbstractValidator<UpdateVehicleCommand>
 {
     public UpdateVehicleCommandValidator()
     {
         RuleFor(x => x.Make)
-        .NotEmpty().MaximumLength(50);
+            .NotEmpty().MaximumLength(50);
 
         RuleFor(x => x.Model)
             .NotEmpty().MaximumLength(50);

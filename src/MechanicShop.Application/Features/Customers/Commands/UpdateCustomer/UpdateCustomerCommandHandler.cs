@@ -1,53 +1,73 @@
-using System.Data.Common;
-using System.Reflection.Metadata;
-using System.Security.Cryptography.X509Certificates;
+using MechanicShop.Application.Common.Errors;
 using MechanicShop.Application.Common.Interfaces;
 using MechanicShop.Domain.Common.Results;
-using MechanicShop.Domain.Customers;
 using MechanicShop.Domain.Customers.Vehicles;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace MechanicShop.Application.Features.Customers.Commands.UpdateCustomer;
 
-public class UpdateCustomerCommandHandler(IAppDbContext context,ILogger<UpdateCustomerCommandHandler> logger, HybridCache cache) : IRequestHandler<UpdateCustomerCommand, Result<Updated>>{
-    public async Task<Result<Updated>> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)
+public class UpdateCustomerCommandHandler(
+    ILogger<UpdateCustomerCommandHandler> logger,
+    IAppDbContext context,
+    HybridCache cache
+    )
+    : IRequestHandler<UpdateCustomerCommand, Result<Updated>>
+{
+    private readonly ILogger<UpdateCustomerCommandHandler> _logger = logger;
+    private readonly IAppDbContext _context = context;
+    private readonly HybridCache _cache = cache;
+
+    public async Task<Result<Updated>> Handle(UpdateCustomerCommand command, CancellationToken ct)
     {
-        var customer = await context.Customers.Include(x=>x.Vehicles).FirstOrDefaultAsync(x=>x.Id==request.Id);
+        var customer = await _context.Customers
+             .Include(rt => rt.Vehicles)
+             .FirstOrDefaultAsync(rt => rt.Id == command.CustomerId, ct);
+
         if (customer is null)
         {
-            logger.LogWarning("no customer with id {}",request.Id);
-            return CustomerError.NotFound(request.Id.ToString());
+            _logger.LogWarning("Customer {CustomerId} not found for update.", command.CustomerId);
+
+            return ApplicationErrors.CustomerNotFound;
         }
 
-        var updateResult =  customer.Update(request.Name,request.PhoneNumber,request.Email);
-        if (updateResult.IsError)
+        var validatedVehicles = new List<Vehicle>();
+
+        foreach (var v in command.Vehicles)
         {
-            return updateResult.Errors;
-        }
-        List<Vehicle> vehicles = [];
-        foreach (var v in request.vehicles)
-        {
-            var id = v.Id ?? Guid.NewGuid();
-            var vehicle = Vehicle.Create(id,v.Make,v.Model,v.Year,v.LicensePlate);
-            if (vehicle.IsError)
+            var vehicleId = v.VehicleId ?? Guid.NewGuid();
+
+            var vehicleResult = Vehicle.Create(vehicleId, v.Make, v.Model, v.Year, v.LicensePlate);
+
+            if (vehicleResult.IsError)
             {
-                return vehicle.Errors;
+                return vehicleResult.Errors;
             }
-            vehicles.Add(vehicle.Value);
+
+            validatedVehicles.Add(vehicleResult.Value);
         }
 
-        var updatePartsResult = customer.Upsert(vehicles);
+        var updateCustomerResult = customer.Update(command.Name, command.Email, command.PhoneNumber);
 
-        if (updatePartsResult.IsError)
+        if (updateCustomerResult.IsError)
         {
-            return updatePartsResult.Errors;
+            return updateCustomerResult.Errors;
         }
-        await context.SaveChangesAsync(cancellationToken);
 
-        await cache.RemoveByTagAsync("Customers", cancellationToken);
+        var upsertPartsResult = customer.Upsert(validatedVehicles);
+
+        if (upsertPartsResult.IsError)
+        {
+            return upsertPartsResult.Errors;
+        }
+
+        await _context.SaveChangesAsync(ct);
+
+        await _cache.RemoveByTagAsync("customer", ct);
 
         return Result.Updated;
     }

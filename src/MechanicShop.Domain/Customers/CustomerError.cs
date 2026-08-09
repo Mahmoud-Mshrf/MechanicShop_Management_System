@@ -4,22 +4,25 @@ namespace MechanicShop.Domain.Customers;
 
 public static class CustomerError
 {
-    public static Error NameRequired 
-        => Error.Validation("Name_Is_Required","Customer Name is required"); 
+    public static Error NameRequired =>
+        Error.Validation("Customer_Name_Required", "Customer name is required");
 
-    public static Error EmailRequired
-        => Error.Validation("PhoneNumber_Is_Required","Phone number is required");
+    public static Error PhoneNumberRequired =>
+        Error.Validation("Customer_Number_Required", "Phone number is required");
 
-    public static Error InvalidEmail
-        => Error.Validation("Email_Is_Invalid","Email is invalid");
+    public static Error EmailRequired =>
+        Error.Validation("Customer_Email_Required", "Email is required");
 
-    public static Error InvalidPhoneNumber
-        => Error.Validation("Invalid_PhoneNumber","Phone number is invalid");
+    public static Error EmailInvalid =>
+      Error.Validation("Customer_Email_Invalid", "Email is invalid");
 
-    public static Error ExistedEmail
-        => Error.Conflict("Existed_Email","Customer with this email is already exists"); 
-    
-    public static Error NotFound(string id)
-        => Error.NotFound("Not_Found_Customer",$"There is no customer with id : {id}"); 
+    public static Error CustomerExists =>
+        Error.Conflict("Customer_Email_Exists", "A customer with this email already exists.");
+
+    public static readonly Error InvalidPhoneNumber =
+        Error.Conflict("Customer.InvalidPhoneNumber", "Phone number must be 7–15 digits and may start with '+'.");
+
+    public static readonly Error CannotDeleteCustomerWithWorkOrders =
+        Error.Conflict("Customer.CannotDelete", "Customer cannot be deleted due to existing work orders.");
 }
 

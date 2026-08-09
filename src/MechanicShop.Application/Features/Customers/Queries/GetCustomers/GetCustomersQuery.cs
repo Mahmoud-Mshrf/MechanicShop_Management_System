@@ -1,9 +1,13 @@
-using MechanicShop.Application.Common.Models;
+using MechanicShop.Application.Common.Interfaces;
 using MechanicShop.Application.Features.Customers.Dtos;
 using MechanicShop.Domain.Common.Results;
-using MediatR;
-using Microsoft.Extensions.Caching.Hybrid;
 
 namespace MechanicShop.Application.Features.Customers.Queries.GetCustomers;
 
-public sealed record GetCustomersQuery(int Page , int PageSize):IRequest<Result<PaginatedList<CustomerDto>>>;
+public sealed record GetCustomersQuery : ICachedQuery<Result<List<CustomerDto>>>
+{
+    public string CacheKey => "customers";
+    public string[] Tags => ["customer"];
+
+    public TimeSpan Expiration => TimeSpan.FromMinutes(10);
+}

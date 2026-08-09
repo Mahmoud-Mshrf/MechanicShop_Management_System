@@ -46,7 +46,7 @@ public sealed class Customer : AuditableEntity
         }
         catch
         {
-            return CustomerError.InvalidEmail;
+            return CustomerError.EmailInvalid;
         }
 
         return new Customer(id,name,phoneNumber,email,vehicles);
@@ -73,7 +73,7 @@ public sealed class Customer : AuditableEntity
         }
         catch
         {
-            return CustomerError.InvalidEmail;
+            return CustomerError.EmailInvalid;
         }
 
         Name =name;

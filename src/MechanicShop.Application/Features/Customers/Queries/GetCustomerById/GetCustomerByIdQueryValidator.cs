@@ -2,10 +2,13 @@ using FluentValidation;
 
 namespace MechanicShop.Application.Features.Customers.Queries.GetCustomerById;
 
-public class GetCustomerByIdQueryValidator : AbstractValidator<GetCustomerByIdQuery>
+public sealed class GetCustomerByIdQueryValidator : AbstractValidator<GetCustomerByIdQuery>
 {
     public GetCustomerByIdQueryValidator()
     {
-        RuleFor(x => x.Id).NotEmpty().WithMessage("Customer id can't be empty");
+        RuleFor(request => request.CustomerId)
+            .NotEmpty()
+            .WithErrorCode("CustomerId_Is_Required")
+            .WithMessage("CustomerId is required.");
     }
 }

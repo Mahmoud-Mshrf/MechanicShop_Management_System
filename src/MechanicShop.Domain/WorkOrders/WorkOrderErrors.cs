@@ -5,32 +5,55 @@ namespace MechanicShop.Domain.WorkOrders;
 
 public static class WorkOrderErrors
 {
-    public static Error IdIsRequired
-        => Error.Validation("Id_Is_Required","WorkOrder id is required ");
-    public static Error VehicleIdIsRequired
-        => Error.Validation("Vehicle_Id_Is_Required","Vehicle id is required ");
-    public static Error LaborIdIsEmpty(string guid)
-        => Error.Validation("Labor_Id_Is_Empty",$"Labor id {guid} is empty ");
-    public static Error AtLeastOneTaskRequired
-        => Error.Validation("AtLeast_One_Task_Is_Required","At least one repair task is required");
+    public static Error WorkOrderIdRequired => Error.Validation(
+        code: "WorkOrderErrors.WorkOrderIdRequired",
+        description: "WorkOrder Id is required");
 
-    public static Error EndAtMustBeAfterStartAt
-        => Error.Validation("EndAt_MustBe_After_StartAt","Ending time must be after starting time");
-    
-    public static Error StartAtMustBeInTheFuture
-        => Error.Validation("StartAt_MustBe_In_TheFuture","StartAt must be in the future");
+    public static Error VehicleIdRequired => Error.Validation(
+        code: "WorkOrderErrors.VehicleIdRequired",
+        description: "Vehicle Id is required");
 
-    public static Error RepairTaskAlreadyIncluded
-        => Error.Validation("RepairTask_Already_Included","RepairTask already included in the current repairTasks");
+    public static Error RepairTasksRequired => Error.Validation(
+        code: "WorkOrderErrors.RepairTasksRequired",
+        description: "At least one repair task is required");
 
-    public static Error InvalidSpot
-        => Error.Validation("Invalid_Spot","Spot is invalid must be A , B , C Or D");
+    public static Error LaborIdRequired => Error.Validation(
+        code: "WorkOrderErrors.LaborIdRequired",
+        description: "Labor Id is required");
 
-    public static Error Readonly 
-        => Error.Conflict("WorkOrderErrors.Readonly","WorkOrder is read-only or is not editable .");
+    public static Error InvalidTiming => Error.Conflict(
+        code: "WorkOrderErrors.InvalidTiming",
+        description: "End time must be after start time.");
 
-    public static Error InvalidStateTransition(OrderState olderState,OrderState newState) 
-        => Error.Conflict("Invalid_State_Transition",$"Invalid state transition from {olderState} to {newState} .");
+    public static Error SpotInvalid => Error.Validation(
+        code: "WorkOrderErrors.SpotInvalid",
+        description: "The provided spot is invalid");
+
+    public static Error Readonly => Error.Conflict(
+        code: "WorkOrderErrors.Readonly",
+        description: "WorkOrder is read-only.");
+
+    public static Error TimingReadonly(string id, WorkOrderState state) => Error.Conflict(
+        code: "WorkOrderErrors.TimingReadonly",
+        description: $"WorkOrder '{id}': Can't Modify timing when WorkOrder status is '{state}'.");
+
+    public static Error LaborIdEmpty(string id) => Error.Validation(
+        code: "WorkOrderErrors.LaborIdEmpty",
+        description: $"WorkOrder '{id}': Labor Id is empty");
+
+    public static Error StateTransitionNotAllowed(DateTimeOffset startAtUtc) => Error.Conflict(
+       code: "WorkOrderErrors.StateTransitionNotAllowed",
+       description: $"State transition is not allowed before the work order’s scheduled start time {startAtUtc:yyyy-MM-dd HH:mm} UTC.");
+
+    public static Error InvalidStateTransition(WorkOrderState current, WorkOrderState next) => Error.Conflict(
+        code: "WorkOrderErrors.InvalidStateTransition",
+        description: $"WorkOrder Invalid State transition from '{current}' to '{next}'.");
+
+    public static Error RepairTaskAlreadyAdded => Error.Conflict(
+        code: "WorkOrderErrors.RepairTaskAlreadyAdded",
+        description: "Repair task already exists.");
+
+    public static Error InvalidStateTransitionTime => Error.Conflict(
+        code: "WorkOrderErrors.InvalidStateTransitionTime",
+        description: "State transition is not allowed before the work order’s scheduled start time.");
 }
-
-
