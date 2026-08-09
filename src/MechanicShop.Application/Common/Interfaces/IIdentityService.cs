@@ -9,4 +9,5 @@ public interface IIdentityService
     Task<Result<AppUserDto>> GetUserByIdAsync(string userId);
     Task<Result<AppUserDto>> AuthenticateAsync(string Email,string Password);
     Task<string?> GetUserNameAsync(string userId);
+    
 }
