@@ -7,6 +7,6 @@ public interface IIdentityService
 {
     Task<bool> IsInRoleAsync(string userId, string role);
     Task<Result<AppUserDto>> GetUserByIdAsync(string userId);
-
+    Task<Result<AppUserDto>> AuthenticateAsync(string Email,string Password);
     Task<string?> GetUserNameAsync(string userId);
 }
