@@ -28,7 +28,6 @@ public sealed class Employee : AuditableEntity
         {
             return EmployeeErrors.FirstNameRequired;
         }
-
         if (string.IsNullOrWhiteSpace(lastName) || lastName.Length > 50)
         {
             return EmployeeErrors.LastNameRequired;
