@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using MechanicShop.Api.Infrastructure;
 using MechanicShop.Api.OpenApi.Transformers;
 using MechanicShop.Api.Services;
 using MechanicShop.Infrastructure.Settings;
