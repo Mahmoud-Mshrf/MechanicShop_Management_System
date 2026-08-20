@@ -1,5 +1,5 @@
 ﻿using MechanicShop.Application.Common.Interfaces;
-using MechanicShop.Domain.Workorders.Billing;
+using MechanicShop.Domain.WorkOrders.Invoices;
 
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -143,7 +143,7 @@ public sealed class InvoicePdfGenerator : IInvoicePdfGenerator
 
                 // Enhanced rows with alternating colors
                 var isEvenRow = false;
-                foreach (var item in invoice.LineItems)
+                foreach (var item in invoice.InvoiceLineItems)
                 {
                     var backgroundColor = isEvenRow ? Colors.Grey.Lighten4 : Colors.White;
 
@@ -203,7 +203,7 @@ public sealed class InvoicePdfGenerator : IInvoicePdfGenerator
                     totalsCol.Item().PaddingVertical(5).Row(totalRow =>
                     {
                         totalRow.RelativeItem().Text("Subtotal:").FontSize(11).FontColor(Colors.Grey.Medium);
-                        totalRow.RelativeItem().AlignRight().Text($"{invoice.Subtotal:C}").FontSize(11).FontColor(Colors.Grey.Darken3);
+                        totalRow.RelativeItem().AlignRight().Text($"{invoice.SubTotal:C}").FontSize(11).FontColor(Colors.Grey.Darken3);
                     });
 
                     totalsCol.Item().PaddingVertical(5).Row(totalRow =>
