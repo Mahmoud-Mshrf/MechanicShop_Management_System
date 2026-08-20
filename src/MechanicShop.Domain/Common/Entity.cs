@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
 using System.Security.Cryptography.X509Certificates;
 
@@ -7,6 +8,8 @@ public abstract class Entity
 {
     public Guid Id {get;}
     private readonly List<DomainEvent> _domainEvents=[];
+    [NotMapped]
+    public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
     protected Entity()
     {
         
