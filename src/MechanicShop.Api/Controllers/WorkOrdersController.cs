@@ -14,7 +14,7 @@ using MechanicShop.Application.Features.WorkOrders.Queries.GetWorkOrderByIdQuery
 using MechanicShop.Application.Features.WorkOrders.Queries.GetWorkOrders;
 using MechanicShop.Contracts.Requests.WorkOrders;
 using MechanicShop.Domain.Identity;
-using MechanicShop.Domain.Workorders.Enums;
+using MechanicShop.Domain.WorkOrders.Enums;
 
 using MediatR;
 
