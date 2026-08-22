@@ -15,7 +15,7 @@ public sealed class Customer : AuditableEntity
     public string? PhoneNumber {get;private set;}
     public string? Email {get; private set;}
     private List<Vehicle> _vehicles = [];
-    public ReadOnlyCollection<Vehicle> Vehicles => _vehicles.AsReadOnly();
+    public IReadOnlyCollection<Vehicle> Vehicles => _vehicles.AsReadOnly();
 
     private Customer(Guid id,string name , string phoneNumber,string email,List<Vehicle> vehicles):base(id)
     {   
@@ -34,7 +34,7 @@ public sealed class Customer : AuditableEntity
         {
             return CustomerError.NameRequired;
         }
-        if (string.IsNullOrWhiteSpace(phoneNumber)|| Regex.IsMatch(phoneNumber,@"^\+?\d{7,15}$"))
+        if (string.IsNullOrWhiteSpace(phoneNumber)|| !Regex.IsMatch(phoneNumber,@"^\+?\d{7,15}$"))
         {
             return CustomerError.InvalidPhoneNumber;
         }
@@ -61,7 +61,7 @@ public sealed class Customer : AuditableEntity
         {
             return CustomerError.NameRequired;
         }
-        if (string.IsNullOrWhiteSpace(phoneNumber)|| Regex.IsMatch(phoneNumber,@"^\+?\d{7,15}$"))
+        if (string.IsNullOrWhiteSpace(phoneNumber)|| !Regex.IsMatch(phoneNumber,@"^\+?\d{7,15}$"))
         {
             return CustomerError.InvalidPhoneNumber;
         }
