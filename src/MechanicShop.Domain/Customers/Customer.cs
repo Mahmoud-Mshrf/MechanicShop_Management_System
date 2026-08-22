@@ -24,6 +24,9 @@ public sealed class Customer : AuditableEntity
         Email = email;
         _vehicles = vehicles;
     }
+    private Customer()
+    {
+    }
 
     public static Result<Customer> Create(Guid id,string name , string phoneNumber,string email,List<Vehicle> vehicles)
     {
