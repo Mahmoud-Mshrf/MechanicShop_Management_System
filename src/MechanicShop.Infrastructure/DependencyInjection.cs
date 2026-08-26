@@ -106,7 +106,7 @@ public static class DependencyInjection
         services.AddHostedService<OverdueBookingCleanupService>();
 
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
-
+        services.Configure<SmsSettings>(configuration.GetSection("SmsSettings"));
         return services;
     }
 }
