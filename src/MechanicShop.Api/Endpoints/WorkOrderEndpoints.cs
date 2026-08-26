@@ -267,7 +267,7 @@ public static class WorkOrderEndpoints
     {
         var command = new UpdateWorkOrderStateCommand(
             WorkOrderId,
-            (WorkOrderState)request.State);
+            (WorkOrderState)request.NewStatus);
 
         var result = await sender.Send(command, ct);
 

@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace MechanicShop.Domain.Common.Results;
 
 public class Error
 {
+    [JsonConstructor]
     private Error(string code, string description, ErrorType errorType)
     {
         Code = code;

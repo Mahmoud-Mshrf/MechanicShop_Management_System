@@ -175,7 +175,7 @@ public sealed class WorkOrdersController(ISender sender) : ApiController
     {
         var command = new UpdateWorkOrderStateCommand(
             workOrderId,
-            (WorkOrderState)(int)request.State);
+            (WorkOrderState)((int)request.NewStatus));
 
         var result = await sender.Send(command, ct);
 

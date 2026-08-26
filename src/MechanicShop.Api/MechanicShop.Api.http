@@ -25,9 +25,9 @@
 @tireRotationServiceId = A376B5D1-6B2D-4DD8-883E-D3D1721C1316
 @brakeReplacementServiceId = 4FA0BE55-06F6-4616-B086-E1F0C9354CD8
 
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg3NzUyMjk5LCJleHAiOjE3ODc3NTU4OTksImlhdCI6MTc4Nzc1MjI5OSwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.7jAXCav1WgDm3OsrzM5nF6zz8wXktRCegyr8YWRpvBM
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg3NzU2MzI4LCJleHAiOjE3ODc3NTk5MjgsImlhdCI6MTc4Nzc1NjMyOCwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.UsmuKhC37uPN4J72UwqtwM7CpuVno7IANKx5kwrtzF8
 
-@workorderId = c3fffd7e-02ee-4e1e-9f8c-71defbd862b0
+@workorderId = e84f7e4e-4519-476c-a2fd-5d094e89681e
 
 ### Get OpenAPI document
 
@@ -50,7 +50,7 @@ GET {{baseUrl}}/v1/repair-tasks
 Authorization: Bearer {{token}}
 
 ### Get a Repair task
-GET {{baseUrl}}/v1/repair-tasks/cee9b309-8620-4128-8d38-2532771ab3ea
+GET {{baseUrl}}/v1/repair-tasks/cee9b309-8620-4028-8d38-2532771ab3ea
 Authorization: Bearer {{token}}
 
 
@@ -106,7 +106,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "NewStatus": {{Workorder}}
+  "NewStatus": 3
 }
 
 ### delete workorder
