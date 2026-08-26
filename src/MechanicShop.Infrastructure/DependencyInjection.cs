@@ -8,6 +8,7 @@ using MechanicShop.Infrastructure.Identity;
 using MechanicShop.Infrastructure.Identity.Policies;
 using MechanicShop.Infrastructure.RealTime;
 using MechanicShop.Infrastructure.Services;
+using MechanicShop.Infrastructure.Settings;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -103,6 +104,8 @@ public static class DependencyInjection
         services.AddScoped<IWorkOrderNotifier, SignalRWorkOrderNotifier>();
 
         services.AddHostedService<OverdueBookingCleanupService>();
+
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
         return services;
     }
