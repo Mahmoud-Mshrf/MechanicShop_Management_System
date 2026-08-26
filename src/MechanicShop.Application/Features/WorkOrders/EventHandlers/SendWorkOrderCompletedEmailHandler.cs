@@ -1,4 +1,5 @@
 ﻿using MechanicShop.Application.Common.Interfaces;
+using MechanicShop.Application.Common.Models;
 using MechanicShop.Domain.WorkOrders.Events;
 
 using MediatR;
@@ -29,8 +30,13 @@ public sealed class SendWorkOrderCompletedEmailHandler(INotificationService noti
             _logger.LogError("WorkOrder with Id '{WorkOrderId}' does not exist.", notification.WorkOrderId);
             return;
         }
-
-        await _notificationService.SendEmailAsync(workOrder.Vehicle?.Customer?.Email!, ct);
+        var emailMessage = new EmailMessage
+        {
+            To = workOrder.Vehicle?.Customer?.Email!,
+            Subject= "vehicle service is complete ",
+            Body = "Your vehicle service is complete. You may collect it from the shop at your earliest convenience.",
+        };
+        await _notificationService.SendEmailAsync(emailMessage, ct);
         await _notificationService.SendSmsAsync(workOrder.Vehicle?.Customer?.PhoneNumber!, ct);
     }
 }
