@@ -4,27 +4,42 @@ using MediatR;
 
 namespace MechanicShop.Application.Common.Behaviors;
 
-public class ValidationBehavior<TRequest, TResponse>(IValidator<TRequest> validator)
-: IPipelineBehavior<TRequest, TResponse>
-where TRequest :IRequest<TResponse> 
-where TResponse:IResult
+public class ValidationBehavior<TRequest, TResponse>(
+    IEnumerable<IValidator<TRequest>> validators)
+    : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+    where TResponse : IResult
 {
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
-        if (validator is null)
+        if (!validators.Any())
         {
             return await next(cancellationToken);
         }
 
-        var result = await validator.ValidateAsync(request,cancellationToken);
+        var context = new ValidationContext<TRequest>(request);
 
-        if (result.IsValid)
+        var validationResults = await Task.WhenAll(
+            validators.Select(validator =>
+                validator.ValidateAsync(context, cancellationToken)));
+
+        var errors = validationResults
+            .SelectMany(result => result.Errors)
+            .Where(error => error is not null)
+            .Select(error =>
+                Error.Validation(
+                    error.ErrorCode,
+                    error.ErrorMessage))
+            .ToList();
+
+        if (errors.Count == 0)
         {
             return await next(cancellationToken);
         }
 
-        var errors = result.Errors.ConvertAll(error => Error.Validation(error.ErrorCode,error.ErrorMessage));
-
-        return (dynamic) errors;
+        return (dynamic)errors;
     }
 }

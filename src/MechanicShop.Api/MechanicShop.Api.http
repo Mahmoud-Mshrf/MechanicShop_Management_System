@@ -25,7 +25,7 @@
 @tireRotationServiceId = A376B5D1-6B2D-4DD8-883E-D3D1721C1316
 @brakeReplacementServiceId = 4FA0BE55-06F6-4616-B086-E1F0C9354CD8
 
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzUxODA5NzU4LCJleHAiOjE3NTE4MTMzNTgsImlhdCI6MTc1MTgwOTc1OCwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.NJvfzwobZwui_ACa1CAaBPmJgxQgQhqqOWJZa-RMT_w
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg3NzUyMjk5LCJleHAiOjE3ODc3NTU4OTksImlhdCI6MTc4Nzc1MjI5OSwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.7jAXCav1WgDm3OsrzM5nF6zz8wXktRCegyr8YWRpvBM
 
 @workorderId = c3fffd7e-02ee-4e1e-9f8c-71defbd862b0
 
@@ -75,7 +75,7 @@ Content-Type: application/json
 
 {
   "vehicleId": "13c80914-41ad-4d46-b7bb-60f6c89ad01e",
-  "repairTaskId": "1cb1608c-3bc7-4325-99c3-8244c0fb412f",
+  "repairTaskId": "cee9b309-8620-4028-8d38-2532771ab3ea",
   "laborId": "{{labor02Id}}",
   "startAt": "2025-03-14T16:00:00Z",
   "duration": "01:00:00"
