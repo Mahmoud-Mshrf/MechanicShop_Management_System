@@ -1,56 +1,61 @@
-﻿using System.Formats.Asn1;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MechanicShop.Application.Common.Interfaces;
 using MechanicShop.Application.Common.Models;
 using MechanicShop.Infrastructure.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.Types;
 
 namespace MechanicShop.Infrastructure.Services;
 
-public sealed class NotificationService(ILogger<NotificationService> logger,IOptions<EmailSettings> settings) : INotificationService
+public sealed class NotificationService : INotificationService
 {
-    private readonly EmailSettings emailSettings  = settings.Value;
+    private readonly ILogger<NotificationService> logger;
+    private readonly EmailSettings emailSettings;
+    private readonly SmsSettings smsSettings;
     private const string Message = "Your vehicle service is complete. You may collect it from the shop at your earliest convenience.";
 
-    // public async Task SendEmailAsync(string to, CancellationToken cancellationToken = default)
-    // {
-    //     var at = to.IndexOf('@');
-    //     var maskedEmail = at > 1
-    //         ? to[0] + new string('*', at - 2) + to[at - 1] + to[at..]
-    //         : "*****";
+    public NotificationService(
+        ILogger<NotificationService> logger,
+        IOptions<EmailSettings> emailOptions,
+        IOptions<SmsSettings> smsOptions)
+    {
+        this.logger = logger;
+        emailSettings = emailOptions.Value;
+        smsSettings = smsOptions.Value;
 
-    //     logger.LogInformation("[Email] To: {Email} | Message: {Message}", maskedEmail, Message);
+        // Twilio client is configured statically per-process; safe to init once.
+        TwilioClient.Init(smsSettings.AccountSid, smsSettings.AuthToken);
+    }
 
-    //     // Simulated email send
-    //     await Task.CompletedTask;
-    // }
-    public async Task SendEmailAsync(EmailMessage message,CancellationToken cancellationToken = default)
+    public async Task SendEmailAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         var email = new MimeMessage();
         email.To.Add(MailboxAddress.Parse(message.To));
-        email.Sender=MailboxAddress.Parse(emailSettings.From);
+        email.Sender = MailboxAddress.Parse(emailSettings.From);
         email.From.Add(MailboxAddress.Parse(emailSettings.From));
-        email.Subject=message.Subject;
+        email.Subject = message.Subject;
 
         var bodyBuilder = new BodyBuilder();
         if (message.IsHtml)
         {
-            bodyBuilder.HtmlBody=message.Body;
+            bodyBuilder.HtmlBody = message.Body;
         }
         else
         {
-            bodyBuilder.TextBody=message.Body;
+            bodyBuilder.TextBody = message.Body;
         }
 
         email.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(emailSettings.Host,emailSettings.Port,MailKit.Security.SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(emailSettings.Username,emailSettings.Password);
-        await client.SendAsync(email);
-        await client.DisconnectAsync(true);
+        await client.ConnectAsync(emailSettings.Host, emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls, cancellationToken);
+        await client.AuthenticateAsync(emailSettings.Username, emailSettings.Password, cancellationToken);
+        await client.SendAsync(email, cancellationToken);
+        await client.DisconnectAsync(true, cancellationToken);
     }
 
     public async Task SendSmsAsync(string phoneNumber, CancellationToken cancellationToken = default)
@@ -59,9 +64,23 @@ public sealed class NotificationService(ILogger<NotificationService> logger,IOpt
             ? new string('*', phoneNumber.Length - 4) + phoneNumber[^4..]
             : "****";
 
-        logger.LogInformation("[SMS] To: {Phone} | Message: {Message}", masked, Message);
+        try
+        {
+            var result = await MessageResource.CreateAsync(
+                to: new PhoneNumber(phoneNumber),
+                from: new PhoneNumber(smsSettings.FromPhoneNumber),
+                body: Message);
 
-        // Simulated SMS send
-        await Task.CompletedTask;
+            logger.LogInformation(
+                "[SMS] Sent to {Phone} | Sid: {MessageSid} | Status: {Status}",
+                masked,
+                result.Sid,
+                result.Status);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "[SMS] Failed to send to {Phone}", masked);
+            throw;
+        }
     }
 }
