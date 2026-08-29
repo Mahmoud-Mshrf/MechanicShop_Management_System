@@ -25,9 +25,9 @@
 @tireRotationServiceId = A376B5D1-6B2D-4DD8-883E-D3D1721C1316
 @brakeReplacementServiceId = 4FA0BE55-06F6-4616-B086-E1F0C9354CD8
 
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg3NzYwMDIwLCJleHAiOjE3ODc3NjM2MjAsImlhdCI6MTc4Nzc2MDAyMCwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.a0nINhkuAiql1vtKUtCA4XrW3MrGhKJtSIQQoh2yevA
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg4MDAyMTUwLCJleHAiOjE3ODgwMDU3NTAsImlhdCI6MTc4ODAwMjE1MCwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.eqwal-6WqF53xYf5cppQWskNgQaUHmAV2Dpl_IEh_zE
 
-@workorderId = e84f7e4e-4519-476c-a2fd-5d094e89681e
+@workorderId = 34512405-b2aa-4baa-a303-10e3008e0040
 
 ### Get OpenAPI document
 
@@ -60,7 +60,7 @@ Authorization: Bearer {{token}}
 
 
 ### search workorders
-GET {{baseUrl}}/v1/workorders?page=1&pageSize=20&searchTerm=Comp&sortColumn=serviceId
+GET {{baseUrl}}/v1/workorders?page=1&pageSize=20&searchTerm=C&sortColumn=serviceId
 Authorization: Bearer {{token}}
 
 
@@ -75,9 +75,12 @@ Content-Type: application/json
 
 {
   "vehicleId": "13c80914-41ad-4d46-b7bb-60f6c89ad01e",
-  "repairTaskId": "cee9b309-8620-4028-8d38-2532771ab3ea",
+  "repairTaskIds":
+  [
+    "e4c2b675-4a60-488f-a7b4-61966e7e80e3"
+  ],
   "laborId": "{{labor02Id}}",
-  "startAt": "2025-03-14T16:00:00Z",
+  "StartAtUtc": "2026-11-09T15:00:00Z",
   "duration": "01:00:00"
 }
 
@@ -87,7 +90,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "startAt": "2026-08-26T19:00:00Z",
+  "startAt": "2026-10-26T19:00:00Z",
   "duration": "00:45:00"
 }
 

@@ -11,8 +11,14 @@ public sealed class CreateWorkOrderCommandValidator : AbstractValidator<CreateWo
             .WithMessage("VehicleId is required.");
 
         RuleFor(request => request.StartAt)
-            .GreaterThan(DateTimeOffset.UtcNow)
-            .WithMessage("StartAt must be in the future.");
+        .Must(startAt =>
+        {
+            Console.WriteLine($"StartAt: {startAt:O}");
+            Console.WriteLine($"UtcNow: {DateTimeOffset.UtcNow:O}");
+
+            return startAt > DateTimeOffset.UtcNow;
+        })
+        .WithMessage("StartAt must be in the future.");
 
         RuleFor(request => request.RepairTaskIds)
             .NotEmpty()
