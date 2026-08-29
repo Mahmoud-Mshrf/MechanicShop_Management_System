@@ -27,7 +27,7 @@
 
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg4MDAyMTUwLCJleHAiOjE3ODgwMDU3NTAsImlhdCI6MTc4ODAwMjE1MCwiaXNzIjoibG9jYWxob3N0IiwiYXVkIjoibG9jYWxob3N0In0.eqwal-6WqF53xYf5cppQWskNgQaUHmAV2Dpl_IEh_zE
 
-@workorderId = 34512405-b2aa-4baa-a303-10e3008e0040
+@workorderId = 1c5573f2-169b-4b92-a4db-b06a393fc4d7"
 
 ### Get OpenAPI document
 
